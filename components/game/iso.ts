@@ -3583,10 +3583,10 @@ export function drawBridgeSign(
   const RADIUS = 5
 
   const rows = Math.max(1, dests.length)
-  const BW = 64
-  const HEADER = 11
-  const ROW = 15
-  const PAD = 5
+  const BW = 84
+  const HEADER = 15
+  const ROW = 22
+  const PAD = 8
   const BH = HEADER + rows * ROW + PAD
   const legH = 16
   const boardBottom = sy - legH
@@ -3672,9 +3672,9 @@ export function drawBridgeSign(
   // ---- rows: small color dot + carved label, centered as a group ----
   ctx.textAlign = 'left'
   ctx.textBaseline = 'middle'
-  ctx.font = `bold 7px ${pixelFontFamily()}`
-  const dotR = 1.9
-  const dotGap = 5 // space between the dot and the label
+  ctx.font = `bold 10px ${pixelFontFamily()}`
+  const dotR = 2.5
+  const dotGap = 6 // space between the dot and the label
   dests.forEach((d, i) => {
     const ry = boardTop + HEADER + i * ROW + ROW / 2
     // center the whole [dot + gap + label] group on the board's mid-line
@@ -3934,13 +3934,13 @@ function drawHangingSign(
   hy: number,
 ) {
   const tagY = cyr - 28
-  ctx.font = `10px ${pixelFontFamily()}`
+  ctx.font = `14px ${pixelFontFamily()}`
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   const tw = ctx.measureText(label).width
-  const tagW = tw + 40
+  const tagW = tw + 56
   const tagX = cxr
-  const plankH = 24
+  const plankH = 32
   const plankTop = tagY - plankH / 2
 
   // gentle sway so the sign feels physical
@@ -4035,20 +4035,20 @@ function drawHangingSign(
 
   // painted icon plate in the shop color
   ctx.fillStyle = color
-  roundRect(ctx, tagX - tagW / 2 + 6, tagY - 7, 14, 14, 3)
+  roundRect(ctx, tagX - tagW / 2 + 8, tagY - 9, 18, 18, 4)
   ctx.fill()
   ctx.strokeStyle = 'rgba(0,0,0,0.25)'
   ctx.lineWidth = 1
-  roundRect(ctx, tagX - tagW / 2 + 6, tagY - 7, 14, 14, 3)
+  roundRect(ctx, tagX - tagW / 2 + 8, tagY - 9, 18, 18, 4)
   ctx.stroke()
-  drawStoreIcon(ctx, icon, tagX - tagW / 2 + 8, tagY - 5, 10, '#ffffff')
+  drawStoreIcon(ctx, icon, tagX - tagW / 2 + 10, tagY - 7, 14, '#ffffff')
 
   // carved-looking label: dark inset shadow + cream text
-  ctx.font = `10px ${pixelFontFamily()}`
+  ctx.font = `14px ${pixelFontFamily()}`
   ctx.fillStyle = 'rgba(40,24,8,0.65)'
-  ctx.fillText(label, tagX + 11, tagY + 2)
+  ctx.fillText(label, tagX + 13, tagY + 2)
   ctx.fillStyle = highlighted ? '#fff6df' : '#f1e6cb'
-  ctx.fillText(label, tagX + 11, tagY + 1)
+  ctx.fillText(label, tagX + 13, tagY + 1)
 
   ctx.restore()
 

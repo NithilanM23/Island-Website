@@ -342,11 +342,11 @@ export function drawInterior(
 
   // camara: centrar la sala y empujar un poco hacia abajo para ver las paredes
   const center = worldToScreen((ROOM_W - 1) / 2, (ROOM_H - 1) / 2)
-  const camX = vw / 2 - center.x
-  const camY = vh / 2 - center.y + 34
+  const camX = Math.round(vw / 2 - center.x)
+  const camY = Math.round(vh / 2 - center.y + 34)
   const origin: Origin = (gx, gy) => {
     const s = worldToScreen(gx, gy)
-    return { x: s.x + camX, y: s.y + camY }
+    return { x: Math.round(s.x + camX), y: Math.round(s.y + camY) }
   }
 
   const backCorner = origin(-0.5, -0.5)
@@ -589,11 +589,7 @@ export function drawInterior(
   for (const e of ents) e.draw()
 
   // ---- vineta para enmarcar ----
-  const vig = ctx.createRadialGradient(vw / 2, vh / 2, vh * 0.35, vw / 2, vh / 2, vh * 0.85)
-  vig.addColorStop(0, 'rgba(0,0,0,0)')
-  vig.addColorStop(1, 'rgba(0,0,0,0.45)')
-  ctx.fillStyle = vig
-  ctx.fillRect(0, 0, vw, vh)
+  // Vignette moved to CSS overlay for GPU acceleration
 }
 
 // ---------------- paredes ----------------

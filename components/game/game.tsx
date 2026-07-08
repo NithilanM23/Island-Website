@@ -83,6 +83,9 @@ export type CartItem = {
 // ---- world map (bigger) ----
 const MAP_W = 48
 const MAP_H = 40
+
+const PATH_CACHE = new Uint8Array(MAP_W * MAP_H).fill(255)
+const GRASS_EDGE_CACHE = new Uint8Array(MAP_W * MAP_H).fill(255)
 // Velocidades y modelo de movimiento viven en ./engine/movement (E4a).
 const INTERACT_RANGE = 1.5
 const INTERIOR_COUNTER_RANGE = 2.2
@@ -1654,16 +1657,19 @@ export function Game() {
       }
       camRef.current = { x: camX, y: camY }
       camTRef.current = t
+      
+      const rCamX = Math.round(camX)
+      const rCamY = Math.round(camY)
       const origin = (gx: number, gy: number) => {
         const s = worldToScreen(gx, gy)
-        return { x: s.x + camX, y: s.y + camY }
+        return { x: Math.round(s.x + rCamX), y: Math.round(s.y + rCamY) }
       }
 
       // pasto de fondo: un solo relleno alineado al mundo (sin costuras de grid).
       // Los caminos/agua/orilla se pintan encima por tile.
-      drawGrassField(ctx, 0, 0, vw, vh, camX, camY)
+      drawGrassField(ctx, 0, 0, vw, vh, rCamX, rCamY)
       // variacion macro de luz/tono a gran escala (rompe la uniformidad)
-      drawGrassMacro(ctx, 0, 0, vw, vh, camX, camY)
+      drawGrassMacro(ctx, 0, 0, vw, vh, rCamX, rCamY)
 
       const waterSet = WATER_SETS.water
       const bridgeSet = WATER_SETS.bridge
@@ -1681,18 +1687,32 @@ export function Game() {
         bridgeSet.has(`${x - 1},${y}`) ||
         bridgeSet.has(`${x},${y + 1}`) ||
         bridgeSet.has(`${x},${y - 1}`)
+      
       const isPathTile = (x: number, y: number) => {
+        if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) return false
+        const idx = y * MAP_W + x
+        if (PATH_CACHE[idx] !== 255) return PATH_CACHE[idx] === 1
+
         const k = `${x},${y}`
-        if (waterSet.has(k) || bridgeSet.has(k)) return false
-        if (!(isMainPath(x, y) || isHousePath(x, y))) return false
-        // keep a one-tile grass verge along the riverbank, except bridge mouths
-        if (touchesWater(x, y) && !touchesBridge(x, y)) return false
-        return true
+        let res = true
+        if (waterSet.has(k) || bridgeSet.has(k)) res = false
+        else if (!(isMainPath(x, y) || isHousePath(x, y))) res = false
+        else if (touchesWater(x, y) && !touchesBridge(x, y)) res = false
+        
+        PATH_CACHE[idx] = res ? 1 : 0
+        return res
       }
+      
       const isGrassEdge = (x: number, y: number) => {
-        const k = `${x},${y}`
         if (x < 0 || y < 0 || x >= MAP_W || y >= MAP_H) return true
-        return !isPathTile(x, y) && !waterSet.has(k) && !bridgeSet.has(k)
+        const idx = y * MAP_W + x
+        if (GRASS_EDGE_CACHE[idx] !== 255) return GRASS_EDGE_CACHE[idx] === 1
+
+        const k = `${x},${y}`
+        const res = !isPathTile(x, y) && !waterSet.has(k) && !bridgeSet.has(k)
+        
+        GRASS_EDGE_CACHE[idx] = res ? 1 : 0
+        return res
       }
       const isWaterOrBridge = (x: number, y: number) => waterSet.has(`${x},${y}`) || bridgeSet.has(`${x},${y}`)
 
@@ -1829,6 +1849,8 @@ export function Game() {
 
       for (const d of SCENERY) {
         const s = origin(d.x, d.y)
+        if (s.x < -TILE_H * 6 || s.x > vw + TILE_H * 6) continue
+        if (s.y < -TILE_H * 8 || s.y > vh + TILE_H * 8) continue
         const n = tileNoise(d.x, d.y)
         pushEnt(d.x, d.y, () => {
           // props estaticos: horneados una vez y copiados (E1)
@@ -1865,6 +1887,8 @@ export function Game() {
 
       for (const d of PATH_DECOR) {
         const s = origin(d.x, d.y)
+        if (s.x < -TILE_H * 6 || s.x > vw + TILE_H * 6) continue
+        if (s.y < -TILE_H * 8 || s.y > vh + TILE_H * 8) continue
         const seed = (d.x * 7 + d.y * 13) % 3
         pushEnt(d.x, d.y, () => {
           if (d.type === 'bridgeSign')
@@ -1874,6 +1898,8 @@ export function Game() {
 
       for (const f of FISH) {
         const s = origin(f.x, f.y)
+        if (s.x < -TILE_H * 6 || s.x > vw + TILE_H * 6) continue
+        if (s.y < -TILE_H * 8 || s.y > vh + TILE_H * 8) continue
         pushEnt(f.x, f.y, () => drawFish(ctx, s.x, s.y, t, f.seed))
       }
 
@@ -1987,6 +2013,8 @@ export function Game() {
       for (const d of DECOR) {
         if (d.type !== 'lamp') continue
         const s = origin(d.x, d.y)
+        if (s.x < -TILE_H * 6 || s.x > vw + TILE_H * 6) continue
+        if (s.y < -TILE_H * 8 || s.y > vh + TILE_H * 8) continue
         const flick = 0.5 + Math.sin(t / 500 + d.x) * 0.06
         const g = ctx.createRadialGradient(s.x, s.y - 30, 4, s.x, s.y - 10, 70)
         g.addColorStop(0, `rgba(255,210,130,${0.22 * flick})`)
@@ -1998,12 +2026,7 @@ export function Game() {
       }
       ctx.restore()
 
-      // soft edge vignette to frame the scene
-      const vig = ctx.createRadialGradient(vw / 2, vh / 2, vh * 0.45, vw / 2, vh / 2, vh * 0.95)
-      vig.addColorStop(0, 'rgba(0,0,0,0)')
-      vig.addColorStop(1, 'rgba(10,20,8,0.35)')
-      ctx.fillStyle = vig
-      ctx.fillRect(0, 0, vw, vh)
+      // Vignette moved to CSS overlay for GPU acceleration
     }
 
     rafRef.current = requestAnimationFrame(step)
@@ -2041,6 +2064,8 @@ export function Game() {
       className="game-cursor relative h-[100dvh] w-full select-none overflow-hidden bg-[#1d1b26]"
     >
       <canvas ref={canvasRef} className="pixelated block h-full w-full touch-none" />
+      {/* CSS-based GPU-accelerated vignette */}
+      <div className="pointer-events-none absolute inset-0 z-[5] bg-[radial-gradient(circle_at_center,transparent_45%,rgba(10,20,8,0.35)_100%)]" />
 
       {/* top HUD */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-3 p-3">
