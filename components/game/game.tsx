@@ -1076,8 +1076,7 @@ export function Game() {
         return
       }
       if (nearbyRef.current) {
-        // Open portfolio section for this building
-        setPortfolioOpen(nearbyRef.current.id as PortfolioSection)
+        enterHouse(nearbyRef.current)
         return
       }
       if (nearBenchRef.current) {
@@ -2022,7 +2021,7 @@ export function Game() {
     actionLabel = 'Stand up'
   } else if (scene === 'world' && nearby) {
     actionEnabled = true
-    actionLabel = `View ${nearby.name}`
+    actionLabel = `Enter ${nearby.name}`
   } else if (scene === 'world' && nearBench) {
     actionEnabled = true
     actionLabel = 'Sit down'
@@ -2071,7 +2070,7 @@ export function Game() {
             <span className="text-foreground">WASD / arrows</span> move ·{' '}
             <span className="text-foreground">Shift</span> run ·{' '}
             <span className="text-foreground">E</span>{' '}
-            {scene === 'world' ? 'view' : nearExit ? 'exit' : 'view'} ·{' '}
+            {scene === 'world' ? 'enter' : nearExit ? 'exit' : 'view'} ·{' '}
             <span className="text-foreground">/</span> chat
           </div>
         </div>

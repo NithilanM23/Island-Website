@@ -1,4 +1,4 @@
-import { X } from 'lucide-react'
+import { X, Code, ExternalLink, ChevronRight } from 'lucide-react'
 import { portfolioContent, SECTION_META, type PortfolioSection } from '@/lib/portfolio-data'
 
 interface PortfolioDialogProps {
@@ -120,29 +120,66 @@ function ExperienceSection() {
 function ProjectsSection() {
   const projects = portfolioContent.projects
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {projects.map((project, idx) => (
-        <div key={idx} className="border border-border rounded-lg p-4">
+        <div key={idx} className="border border-border rounded-lg p-5">
           <div className="flex items-start justify-between mb-2">
-            <h4 className="font-semibold text-foreground">{project.title}</h4>
+            <h4 className="font-semibold text-foreground text-lg">{project.title}</h4>
             {project.link && (
               <a
                 href={project.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-primary hover:underline text-xs"
+                className="text-primary hover:underline text-sm"
               >
                 View
               </a>
             )}
           </div>
-          <p className="text-foreground/80 text-sm mb-3">{project.description}</p>
-          <div className="flex flex-wrap gap-2">
+          <p className="text-foreground/80 text-sm mb-4 leading-relaxed">{project.description}</p>
+          
+          {project.images && project.images.length > 0 && (
+            <div className="relative group">
+              <div className="flex overflow-x-auto gap-4 mb-5 pb-2 snap-x hide-scrollbar">
+                {project.images.map((img, imgIdx) => (
+                  <img 
+                    key={imgIdx} 
+                    src={img} 
+                    alt={`${project.title} screenshot ${imgIdx + 1}`} 
+                    className="rounded-md border border-border/50 h-56 object-contain bg-muted/20 snap-center shrink-0" 
+                    loading="lazy"
+                  />
+                ))}
+              </div>
+              {project.images.length > 1 && (
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 bg-background/90 p-1.5 rounded-full shadow-md backdrop-blur-sm border border-border pointer-events-none opacity-80 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                   <ChevronRight className="w-5 h-5 text-foreground/80" />
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2 mb-5">
             {project.technologies.map((tech) => (
-              <span key={tech} className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+              <span key={tech} className="text-xs bg-primary/10 text-primary px-2.5 py-1 rounded-full">
                 {tech}
               </span>
             ))}
+          </div>
+
+          <div className="flex gap-3">
+            {project.github && (
+              <a href={project.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm bg-secondary text-secondary-foreground hover:bg-secondary/80 px-3 py-1.5 rounded-md transition-colors">
+                <Code className="w-4 h-4" />
+                Code
+              </a>
+            )}
+            {project.demo && (
+              <a href={project.demo} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-md transition-colors">
+                <ExternalLink className="w-4 h-4" />
+                Demo
+              </a>
+            )}
           </div>
         </div>
       ))}

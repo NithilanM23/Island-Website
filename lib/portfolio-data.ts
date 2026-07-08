@@ -40,7 +40,10 @@ export type Project = {
   description: string
   technologies: string[]
   link?: string
+  github?: string
+  demo?: string
   image?: string
+  images?: string[]
 }
 
 export type Research = {
@@ -134,7 +137,7 @@ export const SECTION_META: SectionMeta[] = [
 // Portfolio content - Replace with your actual information
 export const portfolioContent = {
   hero: {
-    title: 'Hi, I&apos;m Nithilan M',
+    title: 'Hi, I am Nithilan M',
     subtitle: 'AI/ML Developer & Data Scientist',
     cta: 'Explore my work',
     description: 'Architecting multimodal RAG systems and intelligent data solutions.',
@@ -145,8 +148,8 @@ export const portfolioContent = {
     location: 'Chennai, India',
     email: 'am.nithilan@gmail.com',
     social: [
-      { name: 'GitHub', url: 'https://github.com' },
-      { name: 'LinkedIn', url: 'https://linkedin.com' },
+      { name: 'GitHub', url: 'https://github.com/NithilanM23' },
+      { name: 'LinkedIn', url: 'https://www.linkedin.com/in/nithilanm23' },
     ],
   } as AboutContent,
 
@@ -173,18 +176,45 @@ export const portfolioContent = {
       description: 'Trained an XGBoost regressor on 10+ years of F1 historical data to predict race positions; served predictions via a Django REST API with <150ms response time.',
       technologies: ['Django', 'XGBoost', 'REST API', 'HTML/CSS', 'Render'],
       link: '#',
+      github: 'https://github.com/NithilanM23/F1-Predictor',
+      demo: 'https://f1predictor.onrender.com',
+      images: ['/f1-predictor/homepage_f1.png', '/f1-predictor/mainpage_f1.png'],
+    },
+    {
+      title: 'Multimodal RAG System',
+      description: 'Architected a fully air-gapped multimodal RAG system ingesting 500+ enterprise PDFs. Engineered a hybrid BM25 + dense-vector retrieval pipeline using FAISS.',
+      technologies: ['Python', 'FAISS', 'Ollama', 'LLaMA-3.2', 'GGUF'],
+      github: 'https://github.com/NithilanM23/Enterprise_RAG',
+      images: ['/multimodal_rag/ui_rag.png'],
+    },
+    {
+      title: 'Magic Story',
+      description: 'An interactive application that generates interesting stories using Gemini, creates great visuals for the story, and performs Text-to-Speech (TTS) to read them aloud.',
+      technologies: ['Gemini', 'Generative AI', 'TTS', 'React'],
+      github: 'https://github.com/NithilanM23/Magic_StoryBook',
+      images: ['/Magic_story/Screenshot 2026-07-07 112812.png', '/Magic_story/Screenshot 2026-07-07 112824.png'],
     },
     {
       title: 'Intelligent CSV Assistant',
       description: 'Developed an interactive Streamlit application enabling users to perform data exploration and obtain ML model insights via an LLM-driven assistant.',
       technologies: ['Streamlit', 'Pandas', 'Scikit-learn', 'PandasAI', 'Gemini 1.5 Pro'],
       link: '#',
+      github: 'https://github.com/NithilanM23/Intelligent-CSV-Assistant-LLM-Powered',
+      images: ['/csv_bot/ex1.png', '/csv_bot/ex2.png', '/csv_bot/ex3.png'],
+    },
+    {
+      title: 'Internal Knowledge Chatbot',
+      description: 'Built a RAG-powered internal knowledge chatbot using Flowise (no-code platform) reducing average employee lookup time by 40%.',
+      technologies: ['Flowise', 'Pinecone', 'Pandas', 'Cheerio'],
+      // github: '#',
+      images: ['/chatbot/blocks.png', '/chatbot/chatbubble.png'],
     },
     {
       title: 'Airline Review Analysis - British Airways',
       description: 'Scraped airline reviews, cleaned data, and performed sentiment analysis with Logistic Regression to predict customer purchase intent.',
       technologies: ['BeautifulSoup', 'Pandas', 'Logistic Regression'],
       link: '#',
+      github: 'https://github.com/NithilanM23/Airline-Review-System-BA-',
     },
   ] as Project[],
 
@@ -194,7 +224,7 @@ export const portfolioContent = {
       authors: 'Nithilan M et al.',
       date: 'Aug 2025 - Jan 2026',
       description: 'Co-designed a novel hybrid anomaly detection architecture combining residual gated autoencoders with patch-level nearest-neighbor reconstruction. Achieved SOTA results on MVTec AD and VisA benchmarks.',
-      link: '#',
+      link: 'https://github.com/NithilanM23/RGAE-PNNR',
       doi: 'Under review at Springer Nature',
     },
   ] as Research[],
@@ -222,8 +252,8 @@ export const portfolioContent = {
     email: 'am.nithilan@gmail.com',
     phone: '+91 7305979173',
     social: [
-      { name: 'GitHub', url: 'https://github.com' },
-      { name: 'LinkedIn', url: 'https://linkedin.com' },
+      { name: 'GitHub', url: 'https://github.com/NithilanM23' },
+      { name: 'LinkedIn', url: 'https://www.linkedin.com/in/nithilanm23' },
     ],
     message: 'Feel free to reach out to me for AI/ML opportunities or collaborations!',
   } as ContactContent,
