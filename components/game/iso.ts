@@ -6905,4 +6905,217 @@ export function drawCharacter(
   }
 }
 
+// A sleek modern sports car in 4 isometric directions.
+export function drawSportsCar(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  dir: Dir,
+  t: number,
+  color: string = '#d32f2f'
+) {
+  const isSide = dir === 'left' || dir === 'right'
+  const isBack = dir === 'up'
+  const facingSide = dir === 'left' ? -1 : 1
+
+  ctx.save()
+  ctx.translate(sx, sy)
+
+  const glassCol = '#1a1d24'
+  const glassReflect = '#2b303b'
+  const tireCol = '#151515'
+  const rimCol = '#999'
+  const lift = Math.sin(t / 80) * 0.4 // engine rumble
+  const by = -4 + lift
+
+  if (isSide) {
+    ctx.scale(facingSide, 1)
+
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'
+    ctx.beginPath()
+    ctx.ellipse(0, 1, 26, 11, 0, 0, Math.PI * 2)
+    ctx.fill()
+
+    // Tires
+    ctx.fillStyle = tireCol
+    ctx.fillRect(-18, by - 6, 10, 10) // rear
+    ctx.fillRect(10, by - 6, 10, 10) // front
+    
+    // Rims
+    ctx.fillStyle = rimCol
+    ctx.fillRect(-15, by - 3, 4, 4)
+    ctx.fillRect(13, by - 3, 4, 4)
+
+    // Underbody / Side skirts
+    ctx.fillStyle = darken(color, 25)
+    roundRect(ctx, -24, by - 8, 48, 6, 2)
+    ctx.fill()
+
+    // Main Car Body (facing RIGHT)
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.moveTo(-25, by - 4) // bottom rear
+    ctx.lineTo(-25, by - 12) // upper rear
+    ctx.lineTo(-14, by - 14) // trunk
+    ctx.lineTo(2, by - 15) // hood top
+    ctx.lineTo(23, by - 9) // nose
+    ctx.lineTo(24, by - 4) // bottom front
+    ctx.closePath()
+    ctx.fill()
+    
+    // Highlights
+    ctx.fillStyle = lighten(color, 15)
+    ctx.fillRect(-22, by - 14, 18, 1) // trunk highlight
+    ctx.fillRect(-2, by - 15, 12, 1) // hood highlight
+
+    // Cabin / Glass (wedge shape)
+    ctx.fillStyle = glassCol
+    ctx.beginPath()
+    ctx.moveTo(-8, by - 14) // base rear
+    ctx.lineTo(-3, by - 24) // roof rear
+    ctx.lineTo(6, by - 24) // roof front
+    ctx.lineTo(14, by - 12) // base front windshield
+    ctx.closePath()
+    ctx.fill()
+    
+    // Glass reflection
+    ctx.fillStyle = glassReflect
+    ctx.beginPath()
+    ctx.moveTo(0, by - 24)
+    ctx.lineTo(6, by - 24)
+    ctx.lineTo(14, by - 12)
+    ctx.lineTo(9, by - 12)
+    ctx.closePath()
+    ctx.fill()
+    
+    // Side window divider (B-pillar)
+    ctx.fillStyle = darken(color, 10)
+    ctx.fillRect(2, by - 24, 2, 12)
+
+    // Spoiler
+    ctx.fillStyle = '#111'
+    ctx.fillRect(-23, by - 20, 2, 6) // strut
+    ctx.fillStyle = color
+    ctx.fillRect(-27, by - 22, 10, 2) // wing
+
+    // Lights
+    ctx.fillStyle = '#fceabb'
+    ctx.fillRect(22, by - 10, 3, 4) // Headlight
+    ctx.fillStyle = '#ff2a2a'
+    ctx.fillRect(-26, by - 11, 2, 4) // Taillight
+    
+    // Exhaust pipe
+    ctx.fillStyle = '#ccc'
+    ctx.fillRect(-27, by - 4, 3, 2)
+
+  } else {
+    // shadow
+    ctx.fillStyle = 'rgba(0,0,0,0.35)'
+    ctx.beginPath()
+    ctx.ellipse(0, 1, 16, 18, 0, 0, Math.PI * 2)
+    ctx.fill()
+    
+    // Tires (sticking out slightly)
+    ctx.fillStyle = tireCol
+    ctx.fillRect(-18, by - 6, 6, 10)
+    ctx.fillRect(12, by - 6, 6, 10)
+
+    // Body base
+    ctx.fillStyle = darken(color, 15)
+    roundRect(ctx, -16, by - 9, 32, 10, 3)
+    ctx.fill()
+
+    ctx.fillStyle = color
+    roundRect(ctx, -15, by - 15, 30, 8, 3)
+    ctx.fill()
+    
+    // Cabin
+    ctx.fillStyle = glassCol
+    ctx.beginPath()
+    ctx.moveTo(-13, by - 15) // base left
+    ctx.lineTo(-9, by - 26) // roof left
+    ctx.lineTo(9, by - 26) // roof right
+    ctx.lineTo(13, by - 15) // base right
+    ctx.closePath()
+    ctx.fill()
+    
+    // Roof top color
+    ctx.fillStyle = color
+    ctx.fillRect(-9, by - 27, 18, 2)
+
+    // Reflection on glass
+    ctx.fillStyle = glassReflect
+    ctx.beginPath()
+    ctx.moveTo(-4, by - 26)
+    ctx.lineTo(2, by - 26)
+    ctx.lineTo(6, by - 15)
+    ctx.lineTo(0, by - 15)
+    ctx.closePath()
+    ctx.fill()
+    
+    if (isBack) {
+      // Spoiler
+      ctx.fillStyle = '#111'
+      ctx.fillRect(-12, by - 21, 2, 6) // left strut
+      ctx.fillRect(10, by - 21, 2, 6) // right strut
+      ctx.fillStyle = color
+      ctx.fillRect(-16, by - 23, 32, 3) // wing
+
+      // Taillights
+      ctx.fillStyle = '#ff2a2a'
+      roundRect(ctx, -14, by - 11, 8, 4, 1)
+      ctx.fill()
+      roundRect(ctx, 6, by - 11, 8, 4, 1)
+      ctx.fill()
+      
+      // License plate
+      ctx.fillStyle = '#fff'
+      ctx.fillRect(-5, by - 9, 10, 4)
+      
+      // Exhaust
+      ctx.fillStyle = '#ccc'
+      ctx.fillRect(-10, by - 4, 4, 4)
+      ctx.fillRect(6, by - 4, 4, 4)
+      ctx.fillStyle = '#111'
+      ctx.fillRect(-9, by - 3, 2, 2)
+      ctx.fillRect(7, by - 3, 2, 2)
+    } else {
+      // Hood lines
+      ctx.strokeStyle = darken(color, 15)
+      ctx.lineWidth = 1
+      ctx.beginPath()
+      ctx.moveTo(-8, by - 14)
+      ctx.lineTo(-6, by - 9)
+      ctx.moveTo(8, by - 14)
+      ctx.lineTo(6, by - 9)
+      ctx.stroke()
+      
+      // Headlights (aggressive slant)
+      ctx.fillStyle = '#fceabb'
+      ctx.beginPath()
+      ctx.moveTo(-14, by - 12)
+      ctx.lineTo(-7, by - 10)
+      ctx.lineTo(-14, by - 9)
+      ctx.closePath()
+      ctx.fill()
+      
+      ctx.beginPath()
+      ctx.moveTo(14, by - 12)
+      ctx.lineTo(7, by - 10)
+      ctx.lineTo(14, by - 9)
+      ctx.closePath()
+      ctx.fill()
+
+      // Grill
+      ctx.fillStyle = '#111'
+      roundRect(ctx, -6, by - 8, 12, 6, 2)
+      ctx.fill()
+    }
+  }
+
+  ctx.restore()
+}
+
 // roundRect / lighten / darken se re-exportan desde ./engine/color (ver cabecera).
+

@@ -41,6 +41,7 @@ import {
   drawButterfly,
   drawFountain,
   drawBridgeSign,
+  drawSportsCar,
   tileNoise,
   worldToScreen,
   type SignDest,
@@ -804,6 +805,7 @@ export function Game() {
     vy: 0,
     speed: 0, // current speed magnitude, used to animate steps
     gait: 0, // accumulated walk-cycle phase
+    isDriving: false,
     // posicion del sub-paso anterior + posicion interpolada de dibujo (E4a)
     prevX: START_TILE.x,
     prevY: START_TILE.y,
@@ -1000,7 +1002,10 @@ export function Game() {
   // "Focus player" button so they can snap the view back to follow mode).
   const [offCenter, setOffCenter] = useState(false)
 
-
+  const carPosRef = useRef({ x: 26, y: 22 })
+  const nearCarRef = useRef(false)
+  const [nearCar, setNearCar] = useState(false)
+  const [isDrivingState, setIsDrivingState] = useState(false)
 
   useEffect(() => {
     playerLookRef.current = playerLook
@@ -1025,7 +1030,7 @@ export function Game() {
   // sprite can't sink into / overlap walls. samples the AABB corners + axis mids.
   const PLAYER_RADIUS = 0.34
   const isBlockedBody = (gx: number, gy: number) => {
-    const r = PLAYER_RADIUS
+    const r = player.current.isDriving ? 0.6 : PLAYER_RADIUS // larger collision box for car
     return (
       isBlocked(gx, gy) ||
       isBlocked(gx - r, gy - r) ||
@@ -1069,9 +1074,32 @@ export function Game() {
     pendingScene.current = { scene: 'world', cat: null }
   }, [])
 
+  const toggleCar = useCallback(() => {
+    if (sceneRef.current !== 'world') return
+    const p = player.current
+    if (p.isDriving) {
+      p.isDriving = false
+      setIsDrivingState(false)
+      carPosRef.current = { x: Math.round(p.x), y: Math.round(p.y) }
+      p.speed = 0
+    } else if (nearCarRef.current) {
+      p.isDriving = true
+      setIsDrivingState(true)
+      p.speed = 0
+    }
+  }, [])
+
   // Accion contextual (tecla E / boton A).
   const doAction = useCallback(() => {
     if (sceneRef.current === 'world') {
+      if (player.current.isDriving) {
+        toggleCar()
+        return
+      }
+      if (nearCarRef.current) {
+        toggleCar()
+        return
+      }
       if (sitRef.current) {
         // stand up from the bench
         sitRef.current = null
@@ -1140,6 +1168,10 @@ export function Game() {
       }
       if (k === 'e' || k === ' ' || k === 'enter') {
         doAction()
+        e.preventDefault()
+      }
+      if (k === 'f') {
+        toggleCar()
         e.preventDefault()
       }
     }
@@ -1475,6 +1507,15 @@ export function Game() {
             }
           }
         }
+        
+        // Check car proximity
+        const dc = Math.hypot(p.x - carPosRef.current.x, p.y - carPosRef.current.y)
+        const isNearCar = dc < 2.0 && !p.isDriving
+        if (isNearCar !== nearCarRef.current) {
+          nearCarRef.current = isNearCar
+          setNearCar(isNearCar)
+        }
+
         const nbChanged =
           (nb === null) !== (nearBenchRef.current === null) ||
           (nb && nearBenchRef.current && (nb.x !== nearBenchRef.current.x || nb.y !== nearBenchRef.current.y))
@@ -1979,13 +2020,16 @@ export function Game() {
           ? ((seatBench.facing ?? 0) === 1 ? 'right' : (seatBench.facing ?? 0) >= 2 ? 'up' : 'left')
           : null
         pushEnt(drawX + (seat ? 0.05 : 0), drawY + (seat ? 0.05 : 0), () => {
-          drawCharacter(ctx, ps.x, py, seatDir ?? p.dir, seat ? false : p.walking, t, {
-            ...playerLookRef.current,
-            gait: p.gait,
-            intensity: p.speed / MAX_SPEED,
-
-            sit: !!seat,
-          })
+          if (p.isDriving) {
+            drawSportsCar(ctx, ps.x, py, p.dir, t, '#d32f2f')
+          } else {
+            drawCharacter(ctx, ps.x, py, seatDir ?? p.dir, seat ? false : p.walking, t, {
+              ...playerLookRef.current,
+              gait: p.gait,
+              intensity: p.speed / MAX_SPEED,
+              sit: !!seat,
+            })
+          }
           // If the backrest is on the near edge (seat faces away), re-draw just
           // the backrest on top so the character reads as leaning against it.
           if (seat && (seatBench?.facing ?? 0) >= 2) {
@@ -1994,6 +2038,16 @@ export function Game() {
           drawNameTag(ctx, ps.x, py, playerNameRef.current)
           if (chatRef.current)
             drawChatBubble(ctx, ps.x, py, chatRef.current.text, chatRef.current.at)
+        })
+      }
+
+      // parked car rendering
+      if (!p.isDriving) {
+        const cx = carPosRef.current.x
+        const cy = carPosRef.current.y
+        const cs = origin(cx, cy)
+        pushEnt(cx, cy, () => {
+          drawSportsCar(ctx, cs.x, cs.y, 'right', t, '#d32f2f')
         })
       }
 
@@ -2039,9 +2093,18 @@ export function Game() {
   // Action button label based on context.
   let actionEnabled = false
   let actionLabel = 'No interaction'
-  if (scene === 'world' && sitting) {
+  let actionKey = 'E'
+  if (scene === 'world' && isDrivingState) {
+    actionEnabled = true
+    actionLabel = 'Exit Car'
+    actionKey = 'F'
+  } else if (scene === 'world' && sitting) {
     actionEnabled = true
     actionLabel = 'Stand up'
+  } else if (scene === 'world' && nearCar) {
+    actionEnabled = true
+    actionLabel = 'Drive Car'
+    actionKey = 'F'
   } else if (scene === 'world' && nearby) {
     actionEnabled = true
     actionLabel = `Enter ${nearby.name}`
@@ -2164,7 +2227,7 @@ export function Game() {
             className="flex items-center gap-2.5 rounded-md border-2 bg-[#10151f]/95 px-3 py-2 backdrop-blur"
           >
             <span className="font-pixel hidden h-6 w-6 items-center justify-center rounded border-2 border-primary/55 bg-primary text-[10px] text-primary-foreground md:flex">
-              E
+              {actionKey}
             </span>
             {scene === 'world' ? (
               <DoorOpen className="h-4 w-4 text-primary md:hidden" />

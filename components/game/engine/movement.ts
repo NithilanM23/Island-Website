@@ -27,6 +27,7 @@ export type Mover = {
   speed: number
   gait: number
   walking: boolean
+  isDriving?: boolean
 }
 
 export type MoveInput = { ix: number; iy: number; running: boolean }
@@ -39,8 +40,9 @@ export function stepMover(
   input: MoveInput,
   blocked: (x: number, y: number) => boolean,
 ) {
+  const DRIVE_SPEED = 0.45 // fast sports car
   const hasInput = input.ix !== 0 || input.iy !== 0
-  const target = input.running ? RUN_SPEED : WALK_SPEED
+  const target = m.isDriving ? DRIVE_SPEED : (input.running ? RUN_SPEED : WALK_SPEED)
   let tvx = 0
   let tvy = 0
   if (hasInput) {
@@ -51,7 +53,9 @@ export function stepMover(
 
   // alpha = 1 - e^(-dt/tau) con dt = 1 sub-paso. Independiente del framerate
   // porque el sub-paso es siempre 16.67ms.
-  const tau = hasInput ? TURN_TAU : STOP_TAU
+  const DRIVE_TURN_TAU = 1.8 // sharp turns
+  const DRIVE_STOP_TAU = 1.0 // stops instantly, no momentum
+  const tau = m.isDriving ? (hasInput ? DRIVE_TURN_TAU : DRIVE_STOP_TAU) : (hasInput ? TURN_TAU : STOP_TAU)
   const a = 1 - Math.exp(-1 / tau)
   m.vx += (tvx - m.vx) * a
   m.vy += (tvy - m.vy) * a
