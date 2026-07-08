@@ -6,26 +6,12 @@ import { GeistPixelSquare } from 'geist/font/pixel'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'v0 Shopify Game Template',
+  title: "Nithilan's Island",
   description:
     'A pixel isometric fashion district where every shop is a Shopify collection. Walk, step inside, and shop.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/image.png',
   },
 }
 
