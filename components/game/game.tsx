@@ -44,6 +44,7 @@ import {
   drawFountain,
   drawBridgeSign,
   drawSportsCar,
+  drawPet,
   tileNoise,
   worldToScreen,
   type SignDest,
@@ -51,6 +52,7 @@ import {
   type BagItem,
   type BridgeCell,
   type PlayerLook,
+  type PetKind,
   type WaterCell,
 } from './iso'
 import { getSprite, blit, spriteScaleFor, type SpriteBox } from './engine/spriteCache'
@@ -97,6 +99,7 @@ const DEFAULT_PLAYER_LOOK: PlayerLook = {
   body: 'man',
   hairStyle: 'short',
   outfit: 'jacket',
+  pet: 'drone',
   shirt: '#f4b740',
   pants: '#3b4252',
   hair: '#5b3a29',
@@ -813,6 +816,8 @@ export function Game() {
     prevY: START_TILE.y,
     rx: START_TILE.x,
     ry: START_TILE.y,
+    petX: START_TILE.x,
+    petY: START_TILE.y,
   })
   const worldPos = useRef({ ...START_TILE }) // to return to the same spot
   const worldBlocked = useRef(buildWorldBlocked())
@@ -1437,6 +1442,8 @@ export function Game() {
           prevY: spawn.y,
           rx: spawn.x,
           ry: spawn.y,
+          petX: spawn.x,
+          petY: spawn.y,
         }
       } else {
         sceneRef.current = 'world'
@@ -1457,6 +1464,8 @@ export function Game() {
           prevY: worldPos.current.y,
           rx: worldPos.current.x,
           ry: worldPos.current.y,
+          petX: worldPos.current.x,
+          petY: worldPos.current.y,
         }
       }
       pendingScene.current = null
@@ -1517,6 +1526,17 @@ export function Game() {
       p.rx = p.prevX + (p.x - p.prevX) * alpha
       p.ry = p.prevY + (p.y - p.prevY) * alpha
 
+      // Pet physics (lerp towards player with slight delay)
+      const targetPetX = p.rx
+      const targetPetY = p.ry
+      const petDx = targetPetX - p.petX
+      const petDy = targetPetY - p.petY
+      const petDist = Math.hypot(petDx, petDy)
+      if (petDist > 0.8) {
+        p.petX += petDx * 0.06
+        p.petY += petDy * 0.06
+      }
+      
       // Proximidad segun escena
       if (sceneRef.current === 'world') {
         let near: CategoryMeta | null = null
@@ -2049,6 +2069,17 @@ export function Game() {
           drawNameTag(ctx, rs.x, ry, pr.name)
           if (pr.chat) drawChatBubble(ctx, rs.x, ry, pr.chat.text, pr.chat.at)
         })
+
+        // Draw remote player's pet
+        if (pr.look?.pet && pr.look.pet !== 'none') {
+          const remotePetX = pr.sitting ? pr.x - 1 : sm.x + 0.6
+          const remotePetY = pr.sitting ? pr.y : sm.y + 0.6
+          pushEnt(remotePetX, remotePetY, () => {
+            const rsPet = origin(remotePetX, remotePetY)
+            const rPetLift = bridgeArchLift(remotePetX, remotePetY)
+            drawPet(ctx, rsPet.x, rsPet.y - rPetLift, pr.look!.pet!, t, pr.dir, rMoving ? 1 : 0)
+          })
+        }
       }
 
       {
@@ -2088,6 +2119,18 @@ export function Game() {
           if (chatRef.current)
             drawChatBubble(ctx, ps.x, py, chatRef.current.text, chatRef.current.at)
         })
+
+        // Draw the player's pet
+        if (p.petX !== undefined && p.petY !== undefined && playerLookRef.current.pet && playerLookRef.current.pet !== 'none') {
+          const petDrawX = seat ? seat.x - 1 : p.petX
+          const petDrawY = seat ? seat.y : p.petY
+          pushEnt(petDrawX, petDrawY, () => {
+            const psPet = origin(petDrawX, petDrawY)
+            const petLift = bridgeArchLift(p.petX, p.petY)
+            const pyPet = psPet.y - petLift
+            drawPet(ctx, psPet.x, pyPet, playerLookRef.current.pet!, t, p.dir, p.speed)
+          })
+        }
       }
 
       // parked car rendering

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { ArrowRight, ChevronLeft, ChevronRight, Dices } from 'lucide-react'
-import { drawCharacter, type HairStyle, type Outfit, type PlayerBody, type PlayerLook } from './iso'
+import { drawCharacter, type HairStyle, type Outfit, type PlayerBody, type PlayerLook, type PetKind } from './iso'
 
 const HAIR_LABELS: Record<HairStyle, string> = {
   short: 'Short',
@@ -26,6 +26,12 @@ const OUTFIT_LABELS: Record<Outfit, string> = {
   romper: 'Romper',
   vercel: 'Vercel',
 }
+
+const PET_LABELS: Record<PetKind, string> = {
+  none: 'None',
+  drone: 'Drone',
+}
+const PET_OPTIONS: PetKind[] = ['none', 'drone']
 
 // Hair + outfit choices are filtered by body. Trimmed to a tight set so the
 // panel stays small — Vercel intentionally kept as a featured outfit.
@@ -328,6 +334,13 @@ export function PlayerCustomizer({
             index={outfitIndex}
             onChange={(i) => change({ outfit: outfitOptions[i] })}
             value={OUTFIT_LABELS[outfitOptions[outfitIndex]]}
+          />
+          <Stepper
+            label="Companion"
+            count={PET_OPTIONS.length}
+            index={Math.max(0, PET_OPTIONS.indexOf(look.pet ?? 'none'))}
+            onChange={(i) => change({ pet: PET_OPTIONS[i] })}
+            value={PET_LABELS[PET_OPTIONS[Math.max(0, PET_OPTIONS.indexOf(look.pet ?? 'none'))]]}
           />
           <Stepper
             label="Skin"

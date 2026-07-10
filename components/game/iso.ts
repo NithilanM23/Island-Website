@@ -56,12 +56,14 @@ export type Outfit =
   | 'skirt'
   | 'romper'
   | 'vercel'
+export type PetKind = 'none' | 'drone'
 export type PlayerLook = {
   body: PlayerBody
   hairStyle: HairStyle
   outfit?: Outfit // optional for backwards compatibility with saved looks
   mustache?: boolean // optional for backwards compatibility with saved looks
   freckles?: boolean // optional facial detail, valid for any body
+  pet?: PetKind // optional companion
   shirt: string
   pants: string
   hair: string
@@ -7118,4 +7120,42 @@ export function drawSportsCar(
 }
 
 // roundRect / lighten / darken se re-exportan desde ./engine/color (ver cabecera).
+
+export function drawPet(
+  ctx: CanvasRenderingContext2D,
+  sx: number,
+  sy: number,
+  petKind: PetKind,
+  t: number,
+  dir: Dir,
+  speed: number
+) {
+  if (petKind === 'none' || !petKind) return
+  ctx.save()
+  
+  if (petKind === 'drone') {
+    // Hovering drone
+    const hoverY = Math.sin(t / 200) * 2
+    ctx.translate(sx, sy + hoverY - 6)
+    
+    // Body
+    ctx.fillStyle = '#3b4252'
+    roundRect(ctx, -4, -6, 8, 8, 2)
+    ctx.fill()
+    ctx.fillStyle = '#4c566a'
+    roundRect(ctx, -3, -7, 6, 6, 1)
+    ctx.fill()
+
+    // Glowing Eye
+    ctx.fillStyle = '#00ffff'
+    ctx.shadowColor = '#00ffff'
+    ctx.shadowBlur = 4
+    ctx.beginPath()
+    ctx.arc(dir === 'right' || dir === 'up' ? 1 : -1, -3, 1.5, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.shadowBlur = 0
+  }
+  
+  ctx.restore()
+}
 
