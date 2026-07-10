@@ -1,4 +1,4 @@
-export type DialogueAction = 'open_portfolio' | 'open_demo' | 'exit'
+export type DialogueAction = 'open_portfolio' | 'open_demo' | 'exit' | 'redirect_external' | 'finish_intro'
 
 export type DialogueOption = {
   label: string
@@ -14,6 +14,23 @@ export type DialogueNode = {
 
 // Mapped by the category/project ID
 export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
+  onboarding_intro: {
+    start: {
+      id: 'start',
+      text: "Hey there! I'm Nithilan, the owner of this digital island. Welcome to my world!",
+      options: [
+        { label: 'Nice to meet you!', nextNodeId: 'hurry' },
+      ]
+    },
+    hurry: {
+      id: 'hurry',
+      text: "If you're in a hurry, I can just teleport you straight to my classic portfolio website. Otherwise, feel free to explore the island!",
+      options: [
+        { label: "I'm in a rush! Take me there.", action: 'redirect_external' },
+        { label: "I want to explore the island.", action: 'finish_intro' }
+      ]
+    }
+  },
   project_f1: {
     start: {
       id: 'start',

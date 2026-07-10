@@ -882,6 +882,16 @@ export function Game() {
   const [nameChecking, setNameChecking] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
   const pendingScene = useRef<{ scene: Scene; cat: CategoryMeta | null } | null>(null)
+  const [onboardingStage, setOnboardingStage] = useState<'intro' | 'hint' | 'done' | null>(null)
+
+  useEffect(() => {
+    if (onboardingStage === 'hint') {
+      const timer = setTimeout(() => {
+        setOnboardingStage((prev) => (prev === 'hint' ? 'done' : prev))
+      }, 7000)
+      return () => clearTimeout(timer)
+    }
+  }, [onboardingStage])
 
   // Validate the chosen name through the moderation endpoint before letting
   // the player into the room. Fail-open on network errors so a hiccup never
@@ -912,8 +922,20 @@ export function Game() {
       // Use the sanitized name the server approved.
       if (data.text) setPlayerName(data.text)
       setStarted(true)
+      if (!sessionStorage.getItem('hasVisitedIsland')) {
+        setOnboardingStage('intro')
+        sessionStorage.setItem('hasVisitedIsland', 'true')
+      } else {
+        setOnboardingStage('hint')
+      }
     } catch {
       setStarted(true)
+      if (!sessionStorage.getItem('hasVisitedIsland')) {
+        setOnboardingStage('intro')
+        sessionStorage.setItem('hasVisitedIsland', 'true')
+      } else {
+        setOnboardingStage('hint')
+      }
     } finally {
       setNameChecking(false)
     }
@@ -1011,7 +1033,7 @@ export function Game() {
   // "Focus player" button so they can snap the view back to follow mode).
   const [offCenter, setOffCenter] = useState(false)
 
-  const carPosRef = useRef({ x: 26, y: 22 })
+  const carPosRef = useRef({ x: 20, y: 24 })
   const nearCarRef = useRef(false)
   const [nearCar, setNearCar] = useState(false)
   const [isDrivingState, setIsDrivingState] = useState(false)
@@ -2367,7 +2389,7 @@ export function Game() {
 
 
       {/* touch controls */}
-      {started && !activeDialogue && (
+      {started && !activeDialogue && onboardingStage !== 'intro' && (
         <Joystick
           onPress={setKey}
           onAction={doAction}
@@ -2396,6 +2418,44 @@ export function Game() {
             }
           }}
         />
+      )}
+
+      {/* onboarding dialog box */}
+      {onboardingStage === 'intro' && (
+        <DialogueBox
+          projectId="onboarding_intro"
+          npcName="Nithilan"
+          onClose={() => setOnboardingStage('hint')}
+          onAction={(action) => {
+            if (action === 'redirect_external') {
+              window.location.href = 'https://nithilan-portfolio.vercel.app'
+            } else if (action === 'finish_intro') {
+              setOnboardingStage('hint')
+            }
+          }}
+        />
+      )}
+
+      {/* onboarding hint bubble */}
+      {onboardingStage === 'hint' && (
+        <div className="absolute top-20 right-4 z-40 max-w-[280px] animate-in slide-in-from-right-4 fade-in duration-500 md:top-6 md:right-6">
+          <div className="relative rounded-2xl border border-white/10 bg-[#0c1320]/80 p-5 shadow-[0_8px_30px_rgba(0,180,255,0.25)] backdrop-blur-xl">
+            <button 
+              onClick={() => setOnboardingStage('done')}
+              className="absolute top-2 right-2 flex h-6 w-6 items-center justify-center rounded-full bg-white/5 text-muted-foreground transition-colors hover:bg-white/10 hover:text-white"
+            >
+              ×
+            </button>
+            <div className="flex items-start gap-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/20 text-primary shadow-[0_0_15px_rgba(0,180,255,0.4)]">
+                <span className="font-pixel text-xs">!</span>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-200">
+                <span className="font-semibold text-primary">Pro tip:</span> My favorite spot on this island is the <strong className="text-white">Projects House</strong>. Be sure to check it out!
+              </p>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* portfolio dialog */}
