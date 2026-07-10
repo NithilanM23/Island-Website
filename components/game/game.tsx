@@ -867,6 +867,7 @@ export function Game() {
   const { toasts, pushToast, dismissToast } = useGameToasts()
   const [portfolioOpen, setPortfolioOpen] = useState<PortfolioSection | null>(null)
   const [activeDialogue, setActiveDialogue] = useState<string | null>(null)
+  const [portfolioSubSection, setPortfolioSubSection] = useState<string | null>(null)
   const portfolioOpenRef = useRef<PortfolioSection | null>(null)
   portfolioOpenRef.current = portfolioOpen
   const [playerLook, setPlayerLook] = useState<PlayerLook>(DEFAULT_PLAYER_LOOK)
@@ -2307,21 +2308,16 @@ export function Game() {
 
       {/* "View All Projects" prompt (only in projects room) */}
       {!portfolioOpen && inside?.id === 'projects' && (
-        <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex justify-end md:bottom-6 md:right-6">
+        <div className="pointer-events-none absolute top-4 right-4 z-10 flex justify-end md:top-6 md:right-6">
           <button
             type="button"
             onClick={() => setPortfolioOpen('projects')}
-            className="pointer-events-auto flex items-center gap-2.5 rounded-md border-2 bg-[#10151f]/95 px-3 py-2 shadow-lg backdrop-blur hover:bg-[#151b27] transition-colors cursor-pointer"
-            style={{
-              borderColor: 'var(--primary)',
-              boxShadow:
-                '0 0 0 2px #0b0f17, 0 6px 0 0 color-mix(in srgb, var(--primary) 33%, transparent), 0 10px 24px rgba(0,0,0,0.5)',
-            }}
+            className="pointer-events-auto flex items-center gap-3 rounded-lg border-2 border-primary bg-primary/90 px-5 py-3.5 shadow-[0_0_20px_rgba(0,200,255,0.4)] backdrop-blur hover:bg-primary hover:scale-105 hover:shadow-[0_0_30px_rgba(0,200,255,0.6)] transition-all cursor-pointer"
           >
-            <span className="font-pixel hidden h-6 w-6 items-center justify-center rounded border-2 border-primary/55 bg-primary text-[10px] text-primary-foreground md:flex">
+            <span className="font-pixel hidden h-8 w-8 items-center justify-center rounded bg-background text-[13px] font-bold text-primary md:flex shadow-inner">
               B
             </span>
-            <span className="font-pixel text-[11px] leading-snug text-foreground">View All Projects</span>
+            <span className="font-pixel text-[14px] font-bold tracking-wider text-primary-foreground">View All Projects</span>
           </button>
         </div>
       )}
@@ -2346,18 +2342,28 @@ export function Game() {
           onAction={(action) => {
             if (action === 'open_portfolio') {
               setActiveDialogue(null)
-              setPortfolioOpen(
-                activeDialogue === 'project_csv' || activeDialogue.startsWith('project_') 
-                  ? 'projects' 
-                  : activeDialogue as PortfolioSection
-              )
+              const isProject = activeDialogue === 'project_csv' || activeDialogue.startsWith('project_')
+              setPortfolioOpen(isProject ? 'projects' : activeDialogue as PortfolioSection)
+              setPortfolioSubSection(isProject ? activeDialogue : null)
+            } else if (action === 'open_demo') {
+              setActiveDialogue(null)
+              if (activeDialogue === 'project_f1') {
+                window.open('https://f1predictor.onrender.com/', '_blank', 'noopener,noreferrer')
+              }
             }
           }}
         />
       )}
 
       {/* portfolio dialog */}
-      <PortfolioDialog section={portfolioOpen} onClose={() => setPortfolioOpen(null)} />
+      <PortfolioDialog 
+        section={portfolioOpen} 
+        subSection={portfolioSubSection}
+        onClose={() => {
+          setPortfolioOpen(null)
+          setPortfolioSubSection(null)
+        }} 
+      />
 
       {/* toast notifications */}
       <GameToasts toasts={toasts} onDismiss={dismissToast} onAction={() => {}} />

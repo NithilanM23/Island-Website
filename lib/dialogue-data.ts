@@ -21,7 +21,7 @@ export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
       options: [
         { label: 'What tech stack did you use?', nextNodeId: 'tech' },
         { label: 'What was the hardest challenge?', nextNodeId: 'challenge' },
-        { label: 'Take me to the live demo!', action: 'open_portfolio' },
+        { label: 'Take me to the live demo!', action: 'open_demo' },
         { label: 'I\'ll look around.', action: 'exit' },
       ]
     },
@@ -30,7 +30,7 @@ export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
       text: 'We built an XGBoost regressor trained on 10+ years of F1 historical data, served via a Django REST API on Render.',
       options: [
         { label: 'What was the hardest challenge?', nextNodeId: 'challenge' },
-        { label: 'Take me to the live demo!', action: 'open_portfolio' },
+        { label: 'Take me to the live demo!', action: 'open_demo' },
         { label: 'Cool, bye!', action: 'exit' }
       ]
     },
@@ -39,7 +39,7 @@ export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
       text: 'Achieving a MAE of 2.3 positions was tough, but validating it end-to-end with 50+ real users during live public inference was the real test.',
       options: [
         { label: 'What tech stack did you use?', nextNodeId: 'tech' },
-        { label: 'Take me to the live demo!', action: 'open_portfolio' },
+        { label: 'Take me to the live demo!', action: 'open_demo' },
         { label: 'Cool, bye!', action: 'exit' }
       ]
     }
@@ -82,22 +82,22 @@ export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
       ]
     }
   },
-  project_csv: {
+  project_rag: {
     start: {
       id: 'start',
-      text: "Data parsed and ready. I am the Intelligent CSV Assistant. Query?",
+      text: "Systems online. I am the AI Engineer for the Enterprise RAG system. Ready for your query.",
       options: [
-        { label: 'What can you analyze?', nextNodeId: 'analyze' },
-        { label: 'Show me the code.', action: 'open_portfolio' },
-        { label: 'Cancel.', action: 'exit' }
+        { label: 'How does the retrieval work?', nextNodeId: 'retrieval' },
+        { label: 'Show me the project details.', action: 'open_portfolio' },
+        { label: 'I will be on my way.', action: 'exit' }
       ]
     },
-    analyze: {
-      id: 'analyze',
-      text: 'I use Streamlit, PandasAI, and Gemini 1.5 Pro to let users perform data exploration and extract ML insights seamlessly.',
+    retrieval: {
+      id: 'retrieval',
+      text: 'It is a fully air-gapped multimodal RAG system for 500+ enterprise PDFs, powered by a hybrid BM25 and FAISS dense-vector retrieval pipeline running local LLaMA-3.2 models.',
       options: [
-        { label: 'Show me the code.', action: 'open_portfolio' },
-        { label: 'Cancel.', action: 'exit' }
+        { label: 'Show me the project details.', action: 'open_portfolio' },
+        { label: 'Impressive. Goodbye.', action: 'exit' }
       ]
     }
   }

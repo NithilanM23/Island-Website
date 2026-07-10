@@ -3,10 +3,11 @@ import { portfolioContent, SECTION_META, type PortfolioSection } from '@/lib/por
 
 interface PortfolioDialogProps {
   section: PortfolioSection | null
+  subSection?: string | null
   onClose: () => void
 }
 
-export function PortfolioDialog({ section, onClose }: PortfolioDialogProps) {
+export function PortfolioDialog({ section, subSection, onClose }: PortfolioDialogProps) {
   if (!section) return null
 
   const sectionMeta = SECTION_META.find((s) => s.id === section)
@@ -33,7 +34,7 @@ export function PortfolioDialog({ section, onClose }: PortfolioDialogProps) {
           {section === 'hero' && <HeroSection />}
           {section === 'about' && <AboutSection />}
           {section === 'experience' && <ExperienceSection />}
-          {section === 'projects' && <ProjectsSection />}
+          {section === 'projects' && <ProjectsSection subSection={subSection} />}
           {section === 'research' && <ResearchSection />}
           {section === 'skills' && <SkillsSection />}
           {section === 'contact' && <ContactSection />}
@@ -117,12 +118,34 @@ function ExperienceSection() {
   )
 }
 
-function ProjectsSection() {
+import { useEffect, useRef } from 'react'
+
+function ProjectsSection({ subSection }: { subSection?: string | null }) {
   const projects = portfolioContent.projects
+  
+  const projectIdMap: Record<string, number> = {
+    'project_f1': 0,
+    'project_rag': 1,
+    'project_magicstory': 2,
+    'project_cashdabba': 3,
+  }
+
+  useEffect(() => {
+    if (subSection && projectIdMap[subSection] !== undefined) {
+      const idx = projectIdMap[subSection]
+      const el = document.getElementById(`project-${idx}`)
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 100)
+      }
+    }
+  }, [subSection])
+
   return (
     <div className="space-y-6">
       {projects.map((project, idx) => (
-        <div key={idx} className="border border-border rounded-lg p-5">
+        <div key={idx} id={`project-${idx}`} className="border border-border rounded-lg p-5">
           <div className="flex items-start justify-between mb-2">
             <h4 className="font-semibold text-foreground text-lg">{project.title}</h4>
             {project.link && (

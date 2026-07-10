@@ -62,7 +62,7 @@ export function getNPCs(cat?: Category) {
       { id: 'project_f1', x: 5, y: 1, name: 'Mechanic' },
       { id: 'project_cashdabba', x: 12, y: 1, name: 'Banker' },
       { id: 'project_magicstory', x: 18, y: 1, name: 'Librarian' },
-      { id: 'project_csv', x: 25, y: 1, name: 'Analyst' }
+      { id: 'project_rag', x: 23.5, y: 1, name: 'AI Engineer' }
     ]
   }
   return [{ id: cat?.id || 'unknown', x: 1, y: 1, name: cat?.npcName || 'NPC' }]
@@ -105,7 +105,8 @@ type FixtureKind =
   | 'sign_f1'
   | 'sign_cashdabba'
   | 'sign_magicstory'
-  | 'sign_csv'
+  | 'sign_rag'
+  | 'rag_terminal'
 interface InteriorTheme {
   floor: FloorStyle
   floorA: string
@@ -284,22 +285,19 @@ const THEMES: Record<string, InteriorTheme> = {
       { x: 1, y: 1, kind: 'fireplace' },
       { x: 1, y: 3, kind: 'spellbook' },
       { x: 5.5, y: 0, kind: 'bookshelf' },
-      { x: 4, y: 5, kind: 'sign_magicstory' },
+      { x: 5, y: 5, kind: 'sign_magicstory' },
     ],
   },
-  project_csv: {
+  project_rag: {
     floor: 'tile',
-    floorA: '#d4e5f2',
-    floorB: '#c3d8e8',
-    grout: 'rgba(100, 120, 150, 0.2)',
-    wallL: '#bacfe0',
-    wallR: '#abc2d4',
+    floorA: '#1a1f24',
+    floorB: '#14181c',
+    grout: 'rgba(0, 255, 255, 0.15)',
+    wallL: '#232a32',
+    wallR: '#1d2329',
     decor: [
-      { x: 1, y: 4, kind: 'plant' },
-      { x: 5, y: 1, kind: 'plant' },
-      { x: 4, y: 2, kind: 'crate' },
-      { x: 2, y: 5, kind: 'display' },
-      { x: 6, y: 6, kind: 'sign_csv' },
+      { x: 5, y: 1, kind: 'rag_terminal' },
+      { x: 6, y: 6, kind: 'sign_rag' },
     ],
   },
 }
@@ -327,7 +325,7 @@ export function interiorBlocked(cat?: Category): Set<string> {
 
   if (cat?.id === 'projects') {
     // Add specific decor for the 4 zones
-    const themes = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_csv']
+    const themes = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_rag']
     themes.forEach((themeId, i) => {
       const offsetX = getZoneOffset(i)
       const theme = THEMES[themeId]
@@ -518,7 +516,7 @@ export function drawInterior(
   // Piso (dibujado celda por celda por depth sorting no aplica al piso,
   // y nos permite tener varios estilos)
   if (cat.id === 'projects') {
-    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_csv']
+    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_rag']
     for (let gy = 0; gy < ROOM_H; gy++) {
       for (let gx = 0; gx < wSize; gx++) {
         const zoneIdx = getZoneIndex(gx)
@@ -598,7 +596,7 @@ export function drawInterior(
   // Props & NPCs
   const npcs = getNPCs(cat)
   if (cat.id === 'projects') {
-    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_csv']
+    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_rag']
     zones.forEach((zone, i) => {
       const offsetX = getZoneOffset(i)
       const zTheme = THEMES[zone]
@@ -936,9 +934,9 @@ function drawPotPlant(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
 // resplandor calido que late sobre el piso. `t` da la animacion.
 function drawFireplace(ctx: CanvasRenderingContext2D, sx: number, sy: number, t: number) {
   const flick = 0.78 + Math.sin(t / 110) * 0.12 + Math.sin(t / 47) * 0.06
-  const W = 38 // ancho de la repisa
-  const topY = sy - 60 // alto del cuerpo de piedra
-  const fbY = sy - 50 // techo de la boca de fuego
+  const W = 64 // ancho de la repisa (increased)
+  const topY = sy - 35 // alto del cuerpo de piedra (reduced height)
+  const fbY = sy - 28 // techo de la boca de fuego
   const fbBottom = sy - 8 // base de la boca
 
   // sombra de contacto
@@ -953,7 +951,7 @@ function drawFireplace(ctx: CanvasRenderingContext2D, sx: number, sy: number, t:
   floorGlow.addColorStop(1, 'rgba(255,150,60,0)')
   ctx.fillStyle = floorGlow
   ctx.beginPath()
-  ctx.ellipse(sx, sy + 10, 44, 20, 0, 0, Math.PI * 2)
+  ctx.ellipse(sx, sy + 10, 54, 20, 0, 0, Math.PI * 2)
   ctx.fill()
 
   // cuerpo de piedra (mamposteria)
@@ -965,89 +963,50 @@ function drawFireplace(ctx: CanvasRenderingContext2D, sx: number, sy: number, t:
   ctx.fillStyle = '#7f7a72'
   ctx.fillRect(sx + W / 2 - 5, topY, 5, sy - topY)
 
-  // ---- conducto / tubo de la chimenea: sube por la pared hasta el techo,
-  // mostrando por donde sale el humo. Se dibuja ANTES de la repisa para que
-  // esta tape la union en la base. Es un cañon de piedra ligeramente conico.
-  {
-    const flueBottomY = topY - 4
-    const flueTopY = flueBottomY - 70
-    const bw = 13 // semiancho abajo
-    const tw = 9 // semiancho arriba (se afina al subir)
-    // cuerpo del conducto
-    ctx.fillStyle = '#928c83'
-    ctx.beginPath()
-    ctx.moveTo(sx - bw, flueBottomY)
-    ctx.lineTo(sx + bw, flueBottomY)
-    ctx.lineTo(sx + tw, flueTopY)
-    ctx.lineTo(sx - tw, flueTopY)
-    ctx.closePath()
-    ctx.fill()
-    // arista iluminada (izq) y en sombra (der)
-    ctx.fillStyle = '#a9a299'
-    ctx.beginPath()
-    ctx.moveTo(sx - bw, flueBottomY)
-    ctx.lineTo(sx - bw + 4, flueBottomY)
-    ctx.lineTo(sx - tw + 3, flueTopY)
-    ctx.lineTo(sx - tw, flueTopY)
-    ctx.closePath()
-    ctx.fill()
-    ctx.fillStyle = '#7a756d'
-    ctx.beginPath()
-    ctx.moveTo(sx + bw - 4, flueBottomY)
-    ctx.lineTo(sx + bw, flueBottomY)
-    ctx.lineTo(sx + tw, flueTopY)
-    ctx.lineTo(sx + tw - 3, flueTopY)
-    ctx.closePath()
-    ctx.fill()
-    // zunchos de hierro
-    ctx.fillStyle = '#4a4038'
-    for (const f of [0.32, 0.72]) {
-      const by = flueBottomY + (flueTopY - flueBottomY) * f
-      const hw = bw + (tw - bw) * f
-      ctx.fillRect(sx - hw - 1, by - 1.5, hw * 2 + 2, 3)
-    }
-    // collar y boca oscura donde el conducto entra al techo (sale el humo)
-    ctx.fillStyle = '#b5ab96'
-    ctx.fillRect(sx - tw - 2, flueTopY - 3, (tw + 2) * 2, 3)
-    ctx.fillStyle = 'rgba(20,16,12,0.55)'
-    ctx.fillRect(sx - tw + 1, flueTopY - 1, (tw - 1) * 2, 2)
-  }
 
   // repisa (mantel) saliente
   ctx.fillStyle = '#cfc6b4'
   ctx.fillRect(sx - W / 2 - 3, topY - 6, W + 6, 6)
   ctx.fillStyle = '#b5ab96'
   ctx.fillRect(sx - W / 2 - 3, topY - 1, W + 6, 1.5)
+
+  // "FIREPLACE" label on the mantel
+  ctx.fillStyle = 'rgba(60,50,40,0.75)'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = `bold 6px ${pixelFontFamily()}`
+  ctx.fillText('FIREPLACE', sx, topY - 3)
+
   // juntas de mamposteria (sillares trabados)
   ctx.fillStyle = 'rgba(70,64,58,0.45)'
-  for (let r = 0; r < 4; r++) {
+  for (let r = 0; r < 2; r++) {
     const ry = topY + 8 + r * 11
     ctx.fillRect(sx - W / 2, ry, W, 1)
-    const off = r % 2 === 0 ? -8 : 8
+    const off = r % 2 === 0 ? -12 : 12
     ctx.fillRect(sx + off, ry, 1, 11)
-    ctx.fillRect(sx + off - 16, ry, 1, 11)
-    ctx.fillRect(sx + off + 16, ry, 1, 11)
+    ctx.fillRect(sx + off - 24, ry, 1, 11)
+    ctx.fillRect(sx + off + 24, ry, 1, 11)
   }
 
   // boca de fuego (arco oscuro)
   ctx.fillStyle = '#1c130d'
   ctx.beginPath()
-  ctx.moveTo(sx - 13, fbBottom)
-  ctx.lineTo(sx - 13, fbY + 4)
-  ctx.quadraticCurveTo(sx, fbY - 5, sx + 13, fbY + 4)
-  ctx.lineTo(sx + 13, fbBottom)
+  ctx.moveTo(sx - 20, fbBottom)
+  ctx.lineTo(sx - 20, fbY + 4)
+  ctx.quadraticCurveTo(sx, fbY - 5, sx + 20, fbY + 4)
+  ctx.lineTo(sx + 20, fbBottom)
   ctx.closePath()
   ctx.fill()
 
   // leños
   ctx.fillStyle = '#5a3a22'
-  ctx.fillRect(sx - 11, fbBottom - 5, 22, 4)
+  ctx.fillRect(sx - 16, fbBottom - 5, 32, 4)
   ctx.fillStyle = '#6e4a2b'
-  ctx.fillRect(sx - 9, fbBottom - 8, 8, 4)
-  ctx.fillRect(sx + 2, fbBottom - 8, 8, 4)
+  ctx.fillRect(sx - 12, fbBottom - 8, 10, 4)
+  ctx.fillRect(sx + 2, fbBottom - 8, 10, 4)
   // brasas brillando entre los leños
   ctx.fillStyle = `rgba(255,120,40,${0.7 * flick})`
-  ctx.fillRect(sx - 6, fbBottom - 3, 12, 2)
+  ctx.fillRect(sx - 10, fbBottom - 3, 20, 2)
 
   // llamas: tres lenguas superpuestas que ondulan a distintas frecuencias
   const drawFlame = (ox: number, baseH: number, freq: number, hue: string) => {
@@ -1061,18 +1020,18 @@ function drawFireplace(ctx: CanvasRenderingContext2D, sx: number, sy: number, t:
     ctx.closePath()
     ctx.fill()
   }
-  drawFlame(-5, 26, 90, `rgba(214,72,28,${0.92 * flick})`) // base roja
-  drawFlame(5, 24, 70, `rgba(214,72,28,${0.92 * flick})`)
-  drawFlame(0, 30, 80, `rgba(245,140,40,${0.95 * flick})`) // naranja central
-  drawFlame(-2, 18, 55, `rgba(255,210,90,${0.95 * flick})`) // nucleo amarillo
-  drawFlame(3, 16, 63, `rgba(255,225,120,${0.9 * flick})`)
+  drawFlame(-8, 20, 90, `rgba(214,72,28,${0.92 * flick})`) // base roja
+  drawFlame(8, 18, 70, `rgba(214,72,28,${0.92 * flick})`)
+  drawFlame(0, 24, 80, `rgba(245,140,40,${0.95 * flick})`) // naranja central
+  drawFlame(-4, 14, 55, `rgba(255,210,90,${0.95 * flick})`) // nucleo amarillo
+  drawFlame(4, 12, 63, `rgba(255,225,120,${0.9 * flick})`)
 
   // luz interior derramandose desde la boca
   const mouthGlow = ctx.createRadialGradient(sx, fbBottom - 10, 2, sx, fbBottom - 10, 22)
   mouthGlow.addColorStop(0, `rgba(255,180,90,${0.5 * flick})`)
   mouthGlow.addColorStop(1, 'rgba(255,180,90,0)')
   ctx.fillStyle = mouthGlow
-  ctx.fillRect(sx - 22, fbBottom - 32, 44, 36)
+  ctx.fillRect(sx - 28, fbBottom - 32, 56, 36)
 }
 
 function drawBarrel(ctx: CanvasRenderingContext2D, sx: number, sy: number, accent: string) {
@@ -1310,6 +1269,7 @@ function drawFixture(
     case 'vault': drawVault(ctx, s.x, s.y); break
     case 'spellbook': drawSpellbook(ctx, s.x, s.y); break
     case 'bookshelf': drawBookshelf(ctx, s.x, s.y); break
+    case 'rag_terminal': drawRagTerminal(ctx, s.x, s.y); break
     case 'sign_f1':
       drawProjectSign(ctx, s.x, s.y, 'F1 Paddock', '#d83a3a', 0);
       break
@@ -1317,10 +1277,10 @@ function drawFixture(
       drawProjectSign(ctx, s.x, s.y, 'Cashdabba', '#e8c98c', 0);
       break
     case 'sign_magicstory':
-      drawProjectSign(ctx, s.x, s.y, 'Magic Story', '#624d78', 176);
+      drawProjectSign(ctx, s.x, s.y, 'Magic Story', '#624d78', 180);
       break
-    case 'sign_csv':
-      drawProjectSign(ctx, s.x, s.y, 'CSV Explorer', '#bacfe0', 180);
+    case 'sign_rag':
+      drawProjectSign(ctx, s.x, s.y, 'Enterprise RAG', '#00f2fe', Math.PI);
       break
   }
 }
@@ -1471,6 +1431,23 @@ function drawBookshelf(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
     const w = 120
     const h = 120
     ctx.drawImage(bookshelfCanvas, sx - w / 2, sy - h + 40, w, h)
+  }
+}
+
+const ragTerminalImg = typeof window !== 'undefined' ? new window.Image() : null
+let ragTerminalCanvas: HTMLCanvasElement | null = null
+if (ragTerminalImg) {
+  ragTerminalImg.src = '/assets/rag_terminal.png'
+  ragTerminalImg.onload = () => {
+    ragTerminalCanvas = processChromaKey(ragTerminalImg)
+  }
+}
+
+function drawRagTerminal(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  if (ragTerminalCanvas) {
+    const w = 160
+    const h = 160
+    ctx.drawImage(ragTerminalCanvas, sx - w / 2, sy - h + 60, w, h)
   }
 }
 

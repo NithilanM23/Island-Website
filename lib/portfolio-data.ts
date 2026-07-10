@@ -182,7 +182,7 @@ export const portfolioContent = {
       title: 'F1 Race Position Predictor',
       description: 'Trained an XGBoost regressor on 10+ years of F1 historical data to predict race positions (MAE: 2.3 positions); served predictions via a Django REST API with <150ms response time, deployed on Render.',
       technologies: ['Django', 'XGBoost', 'REST API', 'HTML/CSS', 'Render'],
-      link: '#',
+
       github: 'https://github.com/NithilanM23/F1-Predictor',
       demo: 'https://f1predictor.onrender.com',
       images: ['/f1-predictor/homepage_f1.png', '/f1-predictor/mainpage_f1.png'],
@@ -211,7 +211,7 @@ export const portfolioContent = {
       title: 'Intelligent CSV Assistant',
       description: 'Developed an interactive Streamlit application enabling users to perform data exploration and obtain ML model insights via an LLM-driven assistant.',
       technologies: ['Streamlit', 'Pandas', 'Scikit-learn', 'PandasAI', 'Gemini 1.5 Pro'],
-      link: '#',
+
       github: 'https://github.com/NithilanM23/Intelligent-CSV-Assistant-LLM-Powered',
       images: ['/csv_bot/ex1.png', '/csv_bot/ex2.png', '/csv_bot/ex3.png'],
     },
@@ -225,7 +225,7 @@ export const portfolioContent = {
       title: 'Airline Review Analysis - British Airways',
       description: 'Scraped airline reviews, cleaned data, and performed sentiment analysis with Logistic Regression to predict customer purchase intent.',
       technologies: ['BeautifulSoup', 'Pandas', 'Logistic Regression'],
-      link: '#',
+
       github: 'https://github.com/NithilanM23/Airline-Review-System-BA-',
     },
   ] as Project[],
