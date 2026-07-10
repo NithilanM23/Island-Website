@@ -18,6 +18,7 @@ import {
   drawNameTag,
   drawChatBubble,
   drawStoreIcon,
+  drawBridgeSign,
   darken,
   lighten,
   roundRect,
@@ -101,6 +102,10 @@ type FixtureKind =
   | 'vault'
   | 'spellbook'
   | 'bookshelf'
+  | 'sign_f1'
+  | 'sign_cashdabba'
+  | 'sign_magicstory'
+  | 'sign_csv'
 interface InteriorTheme {
   floor: FloorStyle
   floorA: string
@@ -253,6 +258,7 @@ const THEMES: Record<string, InteriorTheme> = {
       { x: 3.5, y: 1, kind: 'tire_rack' },
       { x: 1, y: 5, kind: 'tire_rack' },
       { x: 3.5, y: 4.5, kind: 'f1_car' },
+      { x: 1, y: 3, kind: 'sign_f1' },
     ],
   },
   project_cashdabba: {
@@ -264,6 +270,7 @@ const THEMES: Record<string, InteriorTheme> = {
     wallR: '#b3955d',
     decor: [
       { x: 1.5, y: 1, kind: 'vault' },
+      { x: 2, y: 4, kind: 'sign_cashdabba' },
     ],
   },
   project_magicstory: {
@@ -277,6 +284,7 @@ const THEMES: Record<string, InteriorTheme> = {
       { x: 1, y: 1, kind: 'fireplace' },
       { x: 1, y: 3, kind: 'spellbook' },
       { x: 5.5, y: 0, kind: 'bookshelf' },
+      { x: 4, y: 5, kind: 'sign_magicstory' },
     ],
   },
   project_csv: {
@@ -291,6 +299,7 @@ const THEMES: Record<string, InteriorTheme> = {
       { x: 5, y: 1, kind: 'plant' },
       { x: 4, y: 2, kind: 'crate' },
       { x: 2, y: 5, kind: 'display' },
+      { x: 6, y: 6, kind: 'sign_csv' },
     ],
   },
 }
@@ -1301,7 +1310,28 @@ function drawFixture(
     case 'vault': drawVault(ctx, s.x, s.y); break
     case 'spellbook': drawSpellbook(ctx, s.x, s.y); break
     case 'bookshelf': drawBookshelf(ctx, s.x, s.y); break
+    case 'sign_f1':
+      drawProjectSign(ctx, s.x, s.y, 'F1 Paddock', '#d83a3a', 0);
+      break
+    case 'sign_cashdabba':
+      drawProjectSign(ctx, s.x, s.y, 'Cashdabba', '#e8c98c', 0);
+      break
+    case 'sign_magicstory':
+      drawProjectSign(ctx, s.x, s.y, 'Magic Story', '#624d78', 176);
+      break
+    case 'sign_csv':
+      drawProjectSign(ctx, s.x, s.y, 'CSV Explorer', '#bacfe0', 180);
+      break
   }
+}
+
+function drawProjectSign(ctx: CanvasRenderingContext2D, sx: number, sy: number, label: string, color: string, angle: number) {
+  ctx.save()
+  ctx.translate(sx, sy)
+  ctx.scale(0.65, 0.65)
+  // StoreIcon doesn't matter for this sign type, it just renders the dot color
+  drawBridgeSign(ctx, 0, 0, [{ color, icon: 'bag', label }], angle)
+  ctx.restore()
 }
 
 function drawToolChest(ctx: CanvasRenderingContext2D, sx: number, sy: number) {

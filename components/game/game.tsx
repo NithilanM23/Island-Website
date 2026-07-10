@@ -1204,6 +1204,12 @@ export function Game() {
         toggleCar()
         e.preventDefault()
       }
+      if (k === 'b') {
+        if (insideRef.current?.id === 'projects') {
+          setPortfolioOpen('projects')
+        }
+        e.preventDefault()
+      }
     }
     function up(e: KeyboardEvent) {
       const k = e.key?.toLowerCase() || ''
@@ -2298,6 +2304,28 @@ export function Game() {
           </div>
         </div>
       )}
+
+      {/* "View All Projects" prompt (only in projects room) */}
+      {!portfolioOpen && inside?.id === 'projects' && (
+        <div className="pointer-events-none absolute bottom-4 right-4 z-10 flex justify-end md:bottom-6 md:right-6">
+          <button
+            type="button"
+            onClick={() => setPortfolioOpen('projects')}
+            className="pointer-events-auto flex items-center gap-2.5 rounded-md border-2 bg-[#10151f]/95 px-3 py-2 shadow-lg backdrop-blur hover:bg-[#151b27] transition-colors cursor-pointer"
+            style={{
+              borderColor: 'var(--primary)',
+              boxShadow:
+                '0 0 0 2px #0b0f17, 0 6px 0 0 color-mix(in srgb, var(--primary) 33%, transparent), 0 10px 24px rgba(0,0,0,0.5)',
+            }}
+          >
+            <span className="font-pixel hidden h-6 w-6 items-center justify-center rounded border-2 border-primary/55 bg-primary text-[10px] text-primary-foreground md:flex">
+              B
+            </span>
+            <span className="font-pixel text-[11px] leading-snug text-foreground">View All Projects</span>
+          </button>
+        </div>
+      )}
+
 
       {/* touch controls */}
       {started && !activeDialogue && (
