@@ -816,7 +816,7 @@ export function Game() {
   const worldBlocked = useRef(buildWorldBlocked())
   const interiorBlockedRef = useRef(interiorBlocked())
   const sizeRef = useRef({ w: 0, h: 0, dpr: 1 })
-  const zoomRef = useRef(1) // mouse-wheel zoom factor (1 = default)
+  const zoomRef = useRef(1.7) // mouse-wheel zoom factor (1.7 = default, increased to reduce rendering overhead)
   const panRef = useRef({ x: 0, y: 0 })
   // Smoothed camera center (world-screen px). The camera eases toward the
   // player instead of rigidly locking to them, which removes the "tosco"

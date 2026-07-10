@@ -138,13 +138,13 @@ export const SECTION_META: SectionMeta[] = [
 export const portfolioContent = {
   hero: {
     title: 'Hi, I am Nithilan M',
-    subtitle: 'AI/ML Developer & Data Scientist',
+    subtitle: 'AI Engineer & Data Scientist',
     cta: 'Explore my work',
-    description: 'Architecting multimodal RAG systems and intelligent data solutions.',
+    description: 'Architecting multimodal RAG systems, predictive ML models, and intelligent AI platforms.',
   } as HeroContent,
 
   about: {
-    bio: 'I&apos;m a B.Tech student in Artificial Intelligence & Data Science at Shiv Nadar University, Chennai. I specialize in building multimodal RAG systems, predictive ML models, and interactive data assistants. With experience in deploying locally-hosted LLMs and architecting hybrid retrieval pipelines, I love solving complex data privacy and retrieval challenges.',
+    bio: 'I am a B.Tech student in Artificial Intelligence & Data Science at Shiv Nadar University, Chennai (CGPA: 9.04). I specialize in building local on-premise AI platforms, multimodal RAG systems, and predictive ML models. My achievements include securing All India Rank 5 in Large Language Models (NPTEL) and All India Rank 16 in Responsible and Safe AI Systems (NPTEL). I love solving complex data privacy and retrieval challenges.',
     location: 'Chennai, India',
     email: 'am.nithilan@gmail.com',
     social: [
@@ -155,25 +155,32 @@ export const portfolioContent = {
 
   experience: [
     {
+      title: 'AI Engineer Trainee',
+      company: 'Daimler India Commercial Vehicles (DICV)',
+      duration: 'May 2026 - July 2026',
+      description: 'Built and deployed a fully on-premise GenAI platform using GGUF-quantized local LLMs with a toggle between general-purpose assistant mode and document-grounded RAG mode. Built a 3-agent pipeline with rule-based skill configuration for routing queries and augmenting responses with live web search.',
+      technologies: ['GGUF', 'Local LLMs', 'RAG', 'Agentic Pipelines'],
+    },
+    {
       title: 'AI/ML Intern',
       company: 'Sopra Steria India',
       duration: 'Dec 2025 - March 2026',
-      description: 'Architected a fully air-gapped multimodal RAG system ingesting 500+ enterprise PDFs. Engineered a hybrid BM25 + dense-vector retrieval pipeline using FAISS. Deployed and optimized a locally-hosted LLaMA-3.2 model using Ollama with 4-bit quantization.',
-      technologies: ['Python', 'FAISS', 'Ollama', 'LLaMA-3.2', 'GGUF'],
+      description: 'Built a multimodal RAG system for 500+ enterprise PDFs achieving <2s retrieval with zero external API calls. Engineered a Hybrid BM25 + FAISS retrieval pipeline, improving Top-5 retrieval precision by 18%. Deployed a quantized LLaMA-3.2 model using Ollama, reducing inference latency by 35%.',
+      technologies: ['Python', 'FAISS', 'Ollama', 'LLaMA-3.2', 'BM25'],
     },
     {
       title: 'Data Science Intern',
       company: '8Queens Software Technologies Pvt. Ltd.',
       duration: 'June 2025 - July 2025',
-      description: 'Built a RAG-powered internal knowledge chatbot reducing average employee lookup time by 40%. Performed EDA on 15K+ client records identifying key churn indicators, and implemented dashboards in Power BI.',
-      technologies: ['Flowise', 'Pinecone', 'Pandas', 'Power BI', 'Cheerio'],
+      description: 'Built customer churn prediction models using Python and Pandas to identify high-risk customer segments. Built an automated EDA pipeline using YData Profiling and Pandas to generate statistical reports.',
+      technologies: ['Python', 'Pandas', 'YData Profiling'],
     },
   ] as Experience[],
 
   projects: [
     {
       title: 'F1 Race Position Predictor',
-      description: 'Trained an XGBoost regressor on 10+ years of F1 historical data to predict race positions; served predictions via a Django REST API with <150ms response time.',
+      description: 'Trained an XGBoost regressor on 10+ years of F1 historical data to predict race positions (MAE: 2.3 positions); served predictions via a Django REST API with <150ms response time, deployed on Render.',
       technologies: ['Django', 'XGBoost', 'REST API', 'HTML/CSS', 'Render'],
       link: '#',
       github: 'https://github.com/NithilanM23/F1-Predictor',
@@ -195,6 +202,12 @@ export const portfolioContent = {
       images: ['/Magic_story/Screenshot 2026-07-07 112812.png', '/Magic_story/Screenshot 2026-07-07 112824.png'],
     },
     {
+      title: 'CashDabba: AI-Powered FinTech Platform',
+      description: 'Architected a full-stack FinTech application to prevent operational capital shortages, featuring an algorithmic cash flow optimization engine, a multimodal OCR invoice parser, and an LLM-driven market intelligence pipeline.',
+      technologies: ['Next.js', 'FastAPI', 'Python', 'SQLite', 'LLMs', 'OCR'],
+      github: 'https://github.com/NithilanM23/CashDabba',
+    },
+    {
       title: 'Intelligent CSV Assistant',
       description: 'Developed an interactive Streamlit application enabling users to perform data exploration and obtain ML model insights via an LLM-driven assistant.',
       technologies: ['Streamlit', 'Pandas', 'Scikit-learn', 'PandasAI', 'Gemini 1.5 Pro'],
@@ -206,7 +219,6 @@ export const portfolioContent = {
       title: 'Internal Knowledge Chatbot',
       description: 'Built a RAG-powered internal knowledge chatbot using Flowise (no-code platform) reducing average employee lookup time by 40%.',
       technologies: ['Flowise', 'Pinecone', 'Pandas', 'Cheerio'],
-      // github: '#',
       images: ['/chatbot/blocks.png', '/chatbot/chatbubble.png'],
     },
     {
@@ -223,7 +235,7 @@ export const portfolioContent = {
       title: 'RGAE-PNNR: Unsupervised Visual Anomaly Detection',
       authors: 'Nithilan M et al.',
       date: 'Aug 2025 - Jan 2026',
-      description: 'Co-designed a novel hybrid anomaly detection architecture combining residual gated autoencoders with patch-level nearest-neighbor reconstruction. Achieved SOTA results on MVTec AD and VisA benchmarks.',
+      description: 'Co-designed a hybrid deep learning model combining residual gated autoencoders with patch-level nearest-neighbor reconstruction for fine-grained industrial defect localization. Achieved SOTA results on MVTec AD (99.6% AUROC) and VisA benchmarks, optimizing the model to just 5.9M parameters.',
       link: 'https://github.com/NithilanM23/RGAE-PNNR',
       doi: 'Under review at Springer Nature',
     },
@@ -231,20 +243,24 @@ export const portfolioContent = {
 
   skills: [
     {
-      category: 'Languages & DB',
+      category: 'Languages',
       items: ['Python', 'SQL'],
     },
     {
       category: 'ML / AI Frameworks',
-      items: ['PyTorch', 'scikit-learn', 'HuggingFace', 'LangChain', 'Flowise', 'N8N'],
+      items: ['PyTorch', 'scikit-learn', 'HuggingFace Transformers', 'LangChain', 'Flowise', 'N8N'],
     },
     {
       category: 'LLM & RAG Tooling',
-      items: ['Ollama', 'FAISS', 'ChromaDB', 'Pinecone', 'Streamlit'],
+      items: ['Ollama', 'FAISS', 'ChromaDB', 'Pinecone', 'PostgreSQL', 'PGvector'],
     },
     {
-      category: 'Data & Web',
-      items: ['Pandas', 'NumPy', 'Power BI', 'Django REST', 'React'],
+      category: 'Backend & Web',
+      items: ['Django REST Framework', 'JavaScript', 'HTML', 'CSS', 'Next.js', 'FastAPI'],
+    },
+    {
+      category: 'Data & Visualization',
+      items: ['Pandas', 'NumPy', 'Matplotlib', 'Seaborn', 'Power BI'],
     },
   ] as Skill[],
 

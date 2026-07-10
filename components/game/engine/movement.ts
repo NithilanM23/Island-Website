@@ -6,8 +6,8 @@
 
 import type { Dir } from './projection'
 
-export const WALK_SPEED = 0.105 // tiles por frame (60Hz)
-export const RUN_SPEED = 0.185
+export const WALK_SPEED = 0.075 // tiles por frame (60Hz)
+export const RUN_SPEED = 0.135
 export const MAX_SPEED = RUN_SPEED
 
 export const FIXED_DT = 1000 / 60 // ms por sub-paso de simulacion
@@ -40,7 +40,7 @@ export function stepMover(
   input: MoveInput,
   blocked: (x: number, y: number) => boolean,
 ) {
-  const DRIVE_SPEED = 0.45 // fast sports car
+  const DRIVE_SPEED = 0.35 // fast sports car
   const hasInput = input.ix !== 0 || input.iy !== 0
   const target = m.isDriving ? DRIVE_SPEED : (input.running ? RUN_SPEED : WALK_SPEED)
   let tvx = 0
