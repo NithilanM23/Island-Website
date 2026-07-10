@@ -36,21 +36,21 @@ export const ROOM_W_BASE = 7
 export const ROOM_H = 7
 
 export function getRoomW(cat?: Category) {
-  return cat?.id === 'projects' ? 31 : ROOM_W_BASE
+  return cat?.id === 'projects' ? 29 : ROOM_W_BASE
 }
 
 export function getZoneOffset(i: number) {
   if (i === 0) return 0
-  if (i === 1) return 10
-  if (i === 2) return 17
-  if (i === 3) return 24
+  if (i === 1) return 8
+  if (i === 2) return 15
+  if (i === 3) return 22
   return i * 7
 }
 
 export function getZoneIndex(gx: number) {
-  if (gx < 10) return 0
-  if (gx < 17) return 1
-  if (gx < 24) return 2
+  if (gx < 8) return 0
+  if (gx < 15) return 1
+  if (gx < 22) return 2
   return 3
 }
 
@@ -59,9 +59,9 @@ export function getNPCs(cat?: Category) {
   if (cat?.id === 'projects') {
     return [
       { id: 'project_f1', x: 5, y: 1, name: 'Mechanic' },
-      { id: 'project_cashdabba', x: 13, y: 1, name: 'Banker' },
-      { id: 'project_magicstory', x: 20, y: 1, name: 'Librarian' },
-      { id: 'project_csv', x: 27, y: 1, name: 'Analyst' }
+      { id: 'project_cashdabba', x: 12, y: 1, name: 'Banker' },
+      { id: 'project_magicstory', x: 18, y: 1, name: 'Librarian' },
+      { id: 'project_csv', x: 25, y: 1, name: 'Analyst' }
     ]
   }
   return [{ id: cat?.id || 'unknown', x: 1, y: 1, name: cat?.npcName || 'NPC' }]
@@ -98,6 +98,9 @@ type FixtureKind =
   | 'tire_rack'
   | 'tool_chest'
   | 'f1_car'
+  | 'vault'
+  | 'spellbook'
+  | 'bookshelf'
 interface InteriorTheme {
   floor: FloorStyle
   floorA: string
@@ -247,10 +250,9 @@ const THEMES: Record<string, InteriorTheme> = {
     wallR: '#4f4f4f',
     decor: [
       { x: 1, y: 1, kind: 'tire_rack' },
-      { x: 4, y: 1, kind: 'tire_rack' },
+      { x: 3.5, y: 1, kind: 'tire_rack' },
       { x: 1, y: 5, kind: 'tire_rack' },
-      { x: 8, y: 2, kind: 'tool_chest' },
-      { x: 3.5, y: 4, kind: 'f1_car' },
+      { x: 3.5, y: 4.5, kind: 'f1_car' },
     ],
   },
   project_cashdabba: {
@@ -261,10 +263,7 @@ const THEMES: Record<string, InteriorTheme> = {
     wallL: '#c4a46a',
     wallR: '#b3955d',
     decor: [
-      { x: 1, y: 4, kind: 'fireplace' },
-      { x: 5, y: 1, kind: 'plant' },
-      { x: 4, y: 2, kind: 'mirror' },
-      { x: 2, y: 5, kind: 'mirror' },
+      { x: 1.5, y: 1, kind: 'vault' },
     ],
   },
   project_magicstory: {
@@ -275,10 +274,9 @@ const THEMES: Record<string, InteriorTheme> = {
     wallL: '#624d78',
     wallR: '#544169',
     decor: [
-      { x: 1, y: 4, kind: 'fireplace' },
-      { x: 5, y: 1, kind: 'hatstand' },
-      { x: 4, y: 2, kind: 'bench' },
-      { x: 2, y: 5, kind: 'display' },
+      { x: 1, y: 1, kind: 'fireplace' },
+      { x: 1, y: 3, kind: 'spellbook' },
+      { x: 5.5, y: 0, kind: 'bookshelf' },
     ],
   },
   project_csv: {
@@ -1300,6 +1298,9 @@ function drawFixture(
     case 'f1_car': drawF1Car(ctx, s.x, s.y); break
     case 'tire_rack': drawTireRack(ctx, s.x, s.y); break
     case 'tool_chest': drawToolChest(ctx, s.x, s.y); break
+    case 'vault': drawVault(ctx, s.x, s.y); break
+    case 'spellbook': drawSpellbook(ctx, s.x, s.y); break
+    case 'bookshelf': drawBookshelf(ctx, s.x, s.y); break
   }
 }
 
@@ -1349,13 +1350,27 @@ function processChromaKey(img: HTMLImageElement) {
   cx.drawImage(img, 0, 0)
   const idata = cx.getImageData(0, 0, c.width, c.height)
   const d = idata.data
+
   for (let i = 0; i < d.length; i += 4) {
     const r = d[i]
     const g = d[i + 1]
     const b = d[i + 2]
-    // Remove bright green pixels
-    if (g > 150 && r < 100 && b < 100) {
-      d[i + 3] = 0
+
+    const maxRB = Math.max(r, b)
+    const greenness = g - maxRB
+
+    // Remove bright green backgrounds entirely
+    if (g > 100 && greenness > 60) {
+      d[i + 3] = 0 // Fully transparent
+    }
+    // Handle anti-aliased edge pixels
+    else if (g > 70 && greenness > 20) {
+      // Despill: reduce the green intensity so it doesn't look like a green halo
+      d[i + 1] = maxRB + 20
+
+      // Calculate partial transparency
+      const alpha = 255 - ((greenness - 20) / 40) * 255
+      d[i + 3] = Math.floor(alpha)
     }
   }
   cx.putImageData(idata, 0, 0)
@@ -1375,6 +1390,57 @@ function drawF1Car(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
     const w = 150
     const h = 150
     ctx.drawImage(f1CarCanvas, sx - w / 2, sy - h + 40, w, h)
+  }
+}
+
+const vaultImg = typeof window !== 'undefined' ? new window.Image() : null
+let vaultCanvas: HTMLCanvasElement | null = null
+if (vaultImg) {
+  vaultImg.src = '/assets/vault.png'
+  vaultImg.onload = () => {
+    vaultCanvas = processChromaKey(vaultImg)
+  }
+}
+
+function drawVault(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  if (vaultCanvas) {
+    const w = 150
+    const h = 150
+    ctx.drawImage(vaultCanvas, sx - w / 2, sy - h + 40, w, h)
+  }
+}
+
+const spellbookImg = typeof window !== 'undefined' ? new window.Image() : null
+let spellbookCanvas: HTMLCanvasElement | null = null
+if (spellbookImg) {
+  spellbookImg.src = '/assets/spellbook.png'
+  spellbookImg.onload = () => {
+    spellbookCanvas = processChromaKey(spellbookImg)
+  }
+}
+
+function drawSpellbook(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  if (spellbookCanvas) {
+    const w = 120
+    const h = 120
+    ctx.drawImage(spellbookCanvas, sx - w / 2, sy - h + 40, w, h)
+  }
+}
+
+const bookshelfImg = typeof window !== 'undefined' ? new window.Image() : null
+let bookshelfCanvas: HTMLCanvasElement | null = null
+if (bookshelfImg) {
+  bookshelfImg.src = '/assets/bookshelf.png'
+  bookshelfImg.onload = () => {
+    bookshelfCanvas = processChromaKey(bookshelfImg)
+  }
+}
+
+function drawBookshelf(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  if (bookshelfCanvas) {
+    const w = 120
+    const h = 120
+    ctx.drawImage(bookshelfCanvas, sx - w / 2, sy - h + 40, w, h)
   }
 }
 
