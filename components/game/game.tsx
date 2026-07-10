@@ -1,8 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-  import { DoorOpen, LogOut, LocateFixed } from 'lucide-react'
-import { CATEGORY_META, type Category, type CategoryMeta } from '@/lib/game-data'
+import { DoorOpen, LogOut, LocateFixed } from 'lucide-react'
+import { Category, CATEGORY_META, type CategoryMeta } from '@/lib/game-data'
+import { DIALOGUE_TREES } from '@/lib/dialogue-data'
+import { DialogueBox } from './dialogue-box'
 import { type PortfolioSection } from '@/lib/portfolio-data'
 import { type Presence, type RemotePlayer } from '@/lib/liveblocks.config'
 import {
@@ -57,10 +59,10 @@ import { stepMover, MAX_SPEED, FIXED_DT } from './engine/movement'
 import {
   drawInterior,
   interiorBlocked,
-  EXIT_TILE,
-  NPC_TILE,
-  PLAYER_SPAWN,
-  ROOM_W,
+  getExitTile,
+  getNPCs,
+  getPlayerSpawn,
+  getRoomW,
   ROOM_H,
 } from './interior'
 import { Joystick } from './joystick'
@@ -864,6 +866,7 @@ export function Game() {
 
   const { toasts, pushToast, dismissToast } = useGameToasts()
   const [portfolioOpen, setPortfolioOpen] = useState<PortfolioSection | null>(null)
+  const [activeDialogue, setActiveDialogue] = useState<string | null>(null)
   const portfolioOpenRef = useRef<PortfolioSection | null>(null)
   portfolioOpenRef.current = portfolioOpen
   const [playerLook, setPlayerLook] = useState<PlayerLook>(DEFAULT_PLAYER_LOOK)
@@ -1019,7 +1022,7 @@ export function Game() {
     const tx = Math.round(gx)
     const ty = Math.round(gy)
     if (sceneRef.current === 'interior') {
-      if (tx < 0 || ty < 0 || tx >= ROOM_W || ty >= ROOM_H) return true
+      if (tx < 0 || ty < 0 || tx >= getRoomW(insideRef.current || undefined) || ty >= ROOM_H) return true
       return interiorBlockedRef.current.has(`${tx},${ty}`)
     }
     if (tx < 0 || ty < 0 || tx >= MAP_W || ty >= MAP_H) return true
@@ -1124,9 +1127,36 @@ export function Game() {
       if (nearExitRef.current) {
         leaveHouse()
       } else if (nearCounterRef.current) {
-        // Open portfolio section for this building
         if (insideRef.current) {
-          setPortfolioOpen(insideRef.current.id as PortfolioSection)
+          // Si estamos en projects, abrimos el dialogo del NPC mas cercano
+          if (insideRef.current.id === 'projects') {
+            const p = player.current
+            const npcs = getNPCs(insideRef.current)
+            let closestNPC: string | null = null
+            let bestDist = INTERIOR_COUNTER_RANGE
+            for (const npc of npcs) {
+              const dist = Math.hypot(p.x - npc.x, p.y - npc.y)
+              if (dist < bestDist) {
+                bestDist = dist
+                closestNPC = npc.id
+              }
+            }
+            if (closestNPC && DIALOGUE_TREES[closestNPC]) {
+              setActiveDialogue(closestNPC)
+              p.walking = false
+              p.speed = 0
+              p.dir = 'up'
+            }
+          } else if (DIALOGUE_TREES[insideRef.current.id]) {
+            setActiveDialogue(insideRef.current.id)
+            // Detener al jugador
+            const p = player.current
+            p.walking = false
+            p.speed = 0
+            p.dir = 'up'
+          } else {
+            setPortfolioOpen(insideRef.current.id as PortfolioSection)
+          }
         }
       }
     }
@@ -1376,7 +1406,7 @@ export function Game() {
       if (pend.scene === 'interior' && pend.cat) {
         sceneRef.current = 'interior'
         insideRef.current = pend.cat
-        interiorBlockedRef.current = interiorBlocked(pend.cat.icon)
+        interiorBlockedRef.current = interiorBlocked(pend.cat)
         // reset any world-pan so the camera is centered when we come back out
         panRef.current.x = 0
         panRef.current.y = 0
@@ -1385,9 +1415,10 @@ export function Game() {
         setOffCenter(false)
         setScene('interior')
         setInside(pend.cat)
+        const spawn = getPlayerSpawn(pend.cat)
         player.current = {
-          x: PLAYER_SPAWN.x,
-          y: PLAYER_SPAWN.y,
+          x: spawn.x,
+          y: spawn.y,
           dir: 'up',
           walking: false,
           vx: 0,
@@ -1395,10 +1426,10 @@ export function Game() {
           speed: 0,
           gait: 0,
           isDriving: false,
-          prevX: PLAYER_SPAWN.x,
-          prevY: PLAYER_SPAWN.y,
-          rx: PLAYER_SPAWN.x,
-          ry: PLAYER_SPAWN.y,
+          prevX: spawn.x,
+          prevY: spawn.y,
+          rx: spawn.x,
+          ry: spawn.y,
         }
       } else {
         sceneRef.current = 'world'
@@ -1526,13 +1557,22 @@ export function Game() {
           setNearBench(!!nb)
         }
       } else {
-        const dc = Math.hypot(p.x - NPC_TILE.x, p.y - NPC_TILE.y)
-        const nc = dc < INTERIOR_COUNTER_RANGE
-        if (nc !== nearCounterRef.current) {
-          nearCounterRef.current = nc
-          setNearCounter(nc)
+        const p = player.current
+        const npcs = getNPCs(insideRef.current || undefined)
+        let isNearAnyCounter = false
+        for (const npc of npcs) {
+          const dc = Math.hypot(p.x - npc.x, p.y - npc.y)
+          if (dc < INTERIOR_COUNTER_RANGE) {
+            isNearAnyCounter = true
+            break
+          }
         }
-        const de = Math.hypot(p.x - EXIT_TILE.x, p.y - EXIT_TILE.y)
+        if (isNearAnyCounter !== nearCounterRef.current) {
+          nearCounterRef.current = isNearAnyCounter
+          setNearCounter(isNearAnyCounter)
+        }
+        const exitT = getExitTile(insideRef.current || undefined)
+        const de = Math.hypot(p.x - exitT.x, p.y - exitT.y)
         const ne = de < INTERIOR_EXIT_RANGE
         if (ne !== nearExitRef.current) {
           nearExitRef.current = ne
@@ -2119,7 +2159,24 @@ export function Game() {
       actionLabel = 'Exit'
     } else if (nearCounter) {
       actionEnabled = true
-      actionLabel = `View ${inside?.name ?? ''}`
+      if (inside?.id === 'projects') {
+        const p = player.current
+        const npcs = getNPCs(inside)
+        let closestNPC: string | null = null
+        let bestDist = INTERIOR_COUNTER_RANGE
+        for (const npc of npcs) {
+          const dist = Math.hypot(p.x - npc.x, p.y - npc.y)
+          if (dist < bestDist) {
+            bestDist = dist
+            closestNPC = npc.id
+          }
+        }
+        actionLabel = closestNPC && DIALOGUE_TREES[closestNPC] 
+          ? `Talk to ${npcs.find(n => n.id === closestNPC)?.name}` 
+          : 'Talk'
+      } else {
+        actionLabel = DIALOGUE_TREES[inside?.id ?? ''] ? `Talk to ${inside?.npcName ?? 'NPC'}` : `View ${inside?.name ?? ''}`
+      }
     }
   }
 
@@ -2159,8 +2216,9 @@ export function Game() {
           <div className="pointer-events-none rounded-lg border border-white/15 bg-[#0c1320]/45 px-3 py-2 text-[11px] text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
             <span className="text-foreground">WASD / arrows</span> move ·{' '}
             <span className="text-foreground">Shift</span> run ·{' '}
-            <span className="text-foreground">E</span>{' '}
-            {scene === 'world' ? 'enter' : nearExit ? 'exit' : 'view'} ·{' '}
+            <span className="text-foreground">
+              {scene === 'world' ? (isDrivingState ? 'exit car' : nearCar ? 'drive' : 'enter') : nearExit ? 'exit' : 'view'}
+            </span> ·{' '}
             <span className="text-foreground">/</span> chat
           </div>
         </div>
@@ -2242,12 +2300,31 @@ export function Game() {
       )}
 
       {/* touch controls */}
-      {started && (
+      {started && !activeDialogue && (
         <Joystick
           onPress={setKey}
           onAction={doAction}
           actionEnabled={actionEnabled && !portfolioOpen}
           actionLabel={actionLabel}
+        />
+      )}
+
+      {/* dialog box */}
+      {activeDialogue && inside && (
+        <DialogueBox
+          projectId={activeDialogue}
+          npcName={inside.npcName}
+          onClose={() => setActiveDialogue(null)}
+          onAction={(action) => {
+            if (action === 'open_portfolio') {
+              setActiveDialogue(null)
+              setPortfolioOpen(
+                activeDialogue === 'project_csv' || activeDialogue.startsWith('project_') 
+                  ? 'projects' 
+                  : activeDialogue as PortfolioSection
+              )
+            }
+          }}
         />
       )}
 

@@ -21,9 +21,11 @@ export function drawDiamond(
   sy: number,
   fill: string | CanvasGradient,
   edge?: string,
+  w: number = TILE_W,
+  h: number = TILE_H
 ) {
-  const hw = TILE_W / 2
-  const hh = TILE_H / 2
+  const hw = w / 2
+  const hh = h / 2
   ctx.beginPath()
   ctx.moveTo(sx, sy - hh)
   ctx.lineTo(sx + hw, sy)

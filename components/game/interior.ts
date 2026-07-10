@@ -32,13 +32,50 @@ import {
 import type { Category } from '@/lib/game-data'
 
 // Dimensiones de la sala (en celdas).
-export const ROOM_W = 7
+export const ROOM_W_BASE = 7
 export const ROOM_H = 7
 
+export function getRoomW(cat?: Category) {
+  return cat?.id === 'projects' ? 31 : ROOM_W_BASE
+}
+
+export function getZoneOffset(i: number) {
+  if (i === 0) return 0
+  if (i === 1) return 10
+  if (i === 2) return 17
+  if (i === 3) return 24
+  return i * 7
+}
+
+export function getZoneIndex(gx: number) {
+  if (gx < 10) return 0
+  if (gx < 17) return 1
+  if (gx < 24) return 2
+  return 3
+}
+
 // Posiciones clave.
-export const NPC_TILE = { x: 1, y: 1 } // vendedor en la esquina del fondo
-export const EXIT_TILE = { x: ROOM_W - 1, y: ROOM_H - 1 } // tapete al frente
-export const PLAYER_SPAWN = { x: 4, y: 4 } // centro de la sala
+export function getNPCs(cat?: Category) {
+  if (cat?.id === 'projects') {
+    return [
+      { id: 'project_f1', x: 5, y: 1, name: 'Mechanic' },
+      { id: 'project_cashdabba', x: 13, y: 1, name: 'Banker' },
+      { id: 'project_magicstory', x: 20, y: 1, name: 'Librarian' },
+      { id: 'project_csv', x: 27, y: 1, name: 'Analyst' }
+    ]
+  }
+  return [{ id: cat?.id || 'unknown', x: 1, y: 1, name: cat?.npcName || 'NPC' }]
+}
+
+export function getExitTile(cat?: Category) {
+  const w = getRoomW(cat)
+  return { x: Math.floor(w / 2), y: ROOM_H - 1 }
+}
+
+export function getPlayerSpawn(cat?: Category) {
+  const w = getRoomW(cat)
+  return { x: Math.floor(w / 2), y: 4 }
+}
 
 const WALL_H = 116
 
@@ -58,6 +95,9 @@ type FixtureKind =
   | 'mirror'
   | 'hatstand'
   | 'fireplace'
+  | 'tire_rack'
+  | 'tool_chest'
+  | 'f1_car'
 interface InteriorTheme {
   floor: FloorStyle
   floorA: string
@@ -183,22 +223,114 @@ const THEMES: Record<string, InteriorTheme> = {
       { x: 1, y: 5, kind: 'plant' },
     ],
   },
+  // Project Hub
+  projects: {
+    floor: 'checker',
+    floorA: '#f0e5d1',
+    floorB: '#e3d5bb',
+    grout: 'rgba(90, 70, 50, 0.2)',
+    wallL: '#d1c0a8',
+    wallR: '#c2b097',
+    decor: [
+      { x: 1, y: 4, kind: 'plant' },
+      { x: 5, y: 1, kind: 'plant' },
+      { x: 4, y: 2, kind: 'display' },
+      { x: 2, y: 5, kind: 'display' },
+    ],
+  },
+  project_f1: {
+    floor: 'tile',
+    floorA: '#4a4a4a',
+    floorB: '#3b3b3b',
+    grout: 'rgba(20,20,20,0.8)',
+    wallL: '#5c5c5c',
+    wallR: '#4f4f4f',
+    decor: [
+      { x: 1, y: 1, kind: 'tire_rack' },
+      { x: 4, y: 1, kind: 'tire_rack' },
+      { x: 1, y: 5, kind: 'tire_rack' },
+      { x: 8, y: 2, kind: 'tool_chest' },
+      { x: 3.5, y: 4, kind: 'f1_car' },
+    ],
+  },
+  project_cashdabba: {
+    floor: 'checker',
+    floorA: '#e8c98c',
+    floorB: '#d6b374',
+    grout: 'rgba(100, 80, 40, 0.4)',
+    wallL: '#c4a46a',
+    wallR: '#b3955d',
+    decor: [
+      { x: 1, y: 4, kind: 'fireplace' },
+      { x: 5, y: 1, kind: 'plant' },
+      { x: 4, y: 2, kind: 'mirror' },
+      { x: 2, y: 5, kind: 'mirror' },
+    ],
+  },
+  project_magicstory: {
+    floor: 'planks',
+    floorA: '#4d3a5e',
+    floorB: '#402e52',
+    grout: 'rgba(30, 20, 40, 0.5)',
+    wallL: '#624d78',
+    wallR: '#544169',
+    decor: [
+      { x: 1, y: 4, kind: 'fireplace' },
+      { x: 5, y: 1, kind: 'hatstand' },
+      { x: 4, y: 2, kind: 'bench' },
+      { x: 2, y: 5, kind: 'display' },
+    ],
+  },
+  project_csv: {
+    floor: 'tile',
+    floorA: '#d4e5f2',
+    floorB: '#c3d8e8',
+    grout: 'rgba(100, 120, 150, 0.2)',
+    wallL: '#bacfe0',
+    wallR: '#abc2d4',
+    decor: [
+      { x: 1, y: 4, kind: 'plant' },
+      { x: 5, y: 1, kind: 'plant' },
+      { x: 4, y: 2, kind: 'crate' },
+      { x: 2, y: 5, kind: 'display' },
+    ],
+  },
 }
 
-function themeFor(icon?: string): InteriorTheme {
-  return (icon && THEMES[icon]) || THEMES.hoodie
+function themeFor(cat?: Category): InteriorTheme {
+  if (!cat) return THEMES.hoodie
+  if (THEMES[cat.id]) return THEMES[cat.id]
+  return THEMES[cat.icon] || THEMES.hoodie
 }
 
 // Celdas bloqueadas: las dos paredes del fondo (forradas de estanterias),
 // el vendedor, el mostrador en L y el mobiliario del tema de esta tienda.
-export function interiorBlocked(icon?: string): Set<string> {
+export function interiorBlocked(cat?: Category): Set<string> {
   const b = new Set<string>()
-  for (let x = 0; x < ROOM_W; x++) b.add(`${x},0`) // pared trasera derecha
+  const w = getRoomW(cat)
+  for (let x = 0; x < w; x++) b.add(`${x},0`) // pared trasera derecha
   for (let y = 0; y < ROOM_H; y++) b.add(`0,${y}`) // pared trasera izquierda
-  b.add(`${NPC_TILE.x},${NPC_TILE.y}`) // vendedor
-  b.add(`2,1`) // mostrador
-  b.add(`1,2`) // mostrador
-  for (const d of themeFor(icon).decor) b.add(`${d.x},${d.y}`)
+
+  const npcs = getNPCs(cat)
+  for (const npc of npcs) {
+    b.add(`${npc.x},${npc.y}`)
+    b.add(`${npc.x + 1},${npc.y}`)
+    b.add(`${npc.x},${npc.y + 1}`)
+  }
+
+  if (cat?.id === 'projects') {
+    // Add specific decor for the 4 zones
+    const themes = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_csv']
+    themes.forEach((themeId, i) => {
+      const offsetX = getZoneOffset(i)
+      const theme = THEMES[themeId]
+      if (theme) {
+        for (const d of theme.decor) b.add(`${d.x + offsetX},${d.y}`)
+      }
+    })
+  } else {
+    for (const d of themeFor(cat).decor) b.add(`${d.x},${d.y}`)
+  }
   return b
 }
 
@@ -338,10 +470,13 @@ export function drawInterior(
   ctx.fillRect(0, 0, vw, vh)
 
   const accent = cat.color
-  const theme = themeFor(cat.icon)
+  const theme = themeFor(cat)
 
   // camara: centrar la sala y empujar un poco hacia abajo para ver las paredes
-  const center = worldToScreen((ROOM_W - 1) / 2, (ROOM_H - 1) / 2)
+  const wSize = getRoomW(cat)
+  const camWorldX = Math.max(3, Math.min(wSize - 4, player.x))
+  const camWorldY = Math.max(3, Math.min(ROOM_H - 4, player.y))
+  const center = worldToScreen(camWorldX, camWorldY)
   const camX = Math.round(vw / 2 - center.x)
   const camY = Math.round(vh / 2 - center.y + 34)
   const origin: Origin = (gx, gy) => {
@@ -349,9 +484,9 @@ export function drawInterior(
     return { x: Math.round(s.x + camX), y: Math.round(s.y + camY) }
   }
 
-  const backCorner = origin(-0.5, -0.5)
-  const leftCorner = origin(-0.5, ROOM_H - 0.5)
-  const rightCorner = origin(ROOM_W - 0.5, -0.5)
+  const leftCorner = origin(0, -0.5)
+  const backCorner = origin(0, 0)
+  const rightCorner = origin(wSize - 0.5, -0.5)
 
   // halo calido detras (como luz de techo)
   const glow = ctx.createRadialGradient(
@@ -373,34 +508,63 @@ export function drawInterior(
   drawRightWall(ctx, backCorner, rightCorner, accent, cat, theme.wallR)
 
   // ================= PISO =================
-  for (let gy = 0; gy < ROOM_H; gy++) {
-    for (let gx = 0; gx < ROOM_W; gx++) {
-      const s = origin(gx, gy)
-      let fill: string
-      if (theme.floor === 'planks') fill = gy % 2 === 0 ? theme.floorA : theme.floorB
-      else fill = (gx + gy) % 2 === 0 ? theme.floorA : theme.floorB // checker / tile
-      drawDiamond(ctx, s.x, s.y, fill, theme.grout)
-      if (theme.floor === 'planks') {
-        // veta de la tabla
-        ctx.fillStyle = 'rgba(60,38,15,0.16)'
-        ctx.fillRect(s.x - TILE_W / 2 + 4, s.y, TILE_W - 8, 1)
-      } else if (theme.floor === 'tile') {
-        // brillo sutil de baldosa pulida
-        ctx.fillStyle = 'rgba(255,255,255,0.06)'
-        ctx.beginPath()
-        ctx.moveTo(s.x, s.y - TILE_H / 2 + 3)
-        ctx.lineTo(s.x + TILE_W / 2 - 4, s.y)
-        ctx.lineTo(s.x, s.y + 2)
-        ctx.closePath()
-        ctx.fill()
+  // Piso (dibujado celda por celda por depth sorting no aplica al piso,
+  // y nos permite tener varios estilos)
+  if (cat.id === 'projects') {
+    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_csv']
+    for (let gy = 0; gy < ROOM_H; gy++) {
+      for (let gx = 0; gx < wSize; gx++) {
+        const zoneIdx = getZoneIndex(gx)
+        const zoneTheme = THEMES[zones[zoneIdx]] || THEMES.hoodie
+        drawFloorTile(ctx, gx, gy, zoneTheme, origin)
       }
+    }
+  } else {
+    for (let gy = 0; gy < ROOM_H; gy++) {
+      for (let gx = 0; gx < wSize; gx++) {
+        drawFloorTile(ctx, gx, gy, theme, origin)
+      }
+    }
+  }
+
+  function drawFloorTile(c: CanvasRenderingContext2D, gx: number, gy: number, th: InteriorTheme, o: Origin) {
+    const s = o(gx, gy)
+    c.beginPath()
+    c.moveTo(s.x, s.y)
+    c.lineTo(s.x + TILE_W / 2, s.y + TILE_H / 2)
+    c.lineTo(s.x, s.y + TILE_H)
+    c.lineTo(s.x - TILE_W / 2, s.y + TILE_H / 2)
+    c.closePath()
+
+    if (th.floor === 'checker') {
+      c.fillStyle = (gx + gy) % 2 === 0 ? th.floorA : th.floorB
+      c.fill()
+    } else if (th.floor === 'planks') {
+      c.fillStyle = th.floorA
+      c.fill()
+      c.fillStyle = th.grout
+      c.beginPath()
+      c.moveTo(s.x, s.y)
+      c.lineTo(s.x - TILE_W / 2, s.y + TILE_H / 2)
+      c.stroke()
+      c.beginPath()
+      const mx = s.x - TILE_W / 4
+      const my = s.y + TILE_H / 4
+      c.moveTo(mx, my)
+      c.lineTo(mx + TILE_W / 2, my + TILE_H / 2)
+      c.stroke()
+    } else {
+      c.fillStyle = th.floorA
+      c.fill()
+      c.fillStyle = th.grout
+      c.stroke()
     }
   }
 
   // sombra de contacto contra las paredes del fondo (AO)
   ctx.save()
   ctx.globalAlpha = 0.35
-  for (let gx = 0; gx < ROOM_W; gx++) {
+  for (let gx = 0; gx < wSize; gx++) {
     const s = origin(gx, 0)
     const g = ctx.createLinearGradient(s.x, s.y - TILE_H / 2, s.x, s.y + 6)
     g.addColorStop(0, 'rgba(0,0,0,0.5)')
@@ -416,136 +580,84 @@ export function drawInterior(
   }
   ctx.restore()
 
-  // ---- alfombra central ----
-  for (let gy = 2; gy <= 5; gy++) {
-    for (let gx = 2; gx <= 5; gx++) {
-      const s = origin(gx, gy)
-      const edge = gx === 2 || gx === 5 || gy === 2 || gy === 5
-      drawDiamond(ctx, s.x, s.y, withAlpha(edge ? darken(accent, 20) : accent, edge ? 0.5 : 0.28))
+  // tapete salida
+  const exitT = getExitTile(cat)
+  const exit = origin(exitT.x, exitT.y)
+  drawDiamond(ctx, exit.x, exit.y + 4, '#8f4646', undefined, TILE_W * 0.7, TILE_H * 0.7)
+
+  // Muebles, personajes, paredes. Ordenados por profundidad (gy + gx).
+  const ents: { depth: number; draw: () => void }[] = []
+
+  // Props & NPCs
+  const npcs = getNPCs(cat)
+  if (cat.id === 'projects') {
+    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_csv']
+    zones.forEach((zone, i) => {
+      const offsetX = getZoneOffset(i)
+      const zTheme = THEMES[zone]
+      if (zTheme) {
+        for (const d of zTheme.decor) {
+          ents.push({
+            depth: origin(d.x + offsetX, d.y).y + 1,
+            draw: () => drawFixture(ctx, d.x + offsetX, d.y, d.kind, origin, t, cat),
+          })
+        }
+      }
+    })
+
+    // Draw counters & NPCs for each zone
+    npcs.forEach((npc) => {
+      const cx = npc.x + 1
+      const cy = npc.y
+      const sC = origin(cx, cy)
+      ents.push({
+        depth: sC.y + 1,
+        draw: () => {
+          isoBox(ctx, origin, cx, cy, 30, '#caa066', darken(accent, 22), darken(accent, 38), 0.5)
+          isoBox(ctx, origin, npc.x, npc.y + 1, 30, '#caa066', darken(accent, 22), darken(accent, 38), 0.5)
+          drawCounterSign(ctx, sC.x + 22, sC.y - 57, cat.icon, npc.name, accent)
+        },
+      })
+
+      const sN = origin(npc.x, npc.y)
+      ents.push({
+        depth: sN.y,
+        draw: () => {
+          drawCharacter(ctx, sN.x, sN.y - 4, 'down', false, t, {
+            skin: '#8e5c43',
+            shirt: accent,
+            pants: '#333',
+          })
+          drawNameTag(ctx, sN.x, sN.y - 4, npc.name)
+        }
+      })
+    })
+  } else {
+    for (const d of theme.decor) {
+      ents.push({
+        depth: origin(d.x, d.y).y + 1,
+        draw: () => drawFixture(ctx, d.x, d.y, d.kind, origin, t, cat),
+      })
     }
-  }
 
-  // ---- tapete de salida ----
-  {
-    const s = origin(EXIT_TILE.x, EXIT_TILE.y)
-    drawDiamond(ctx, s.x, s.y, nearExit ? '#f4b740' : '#5b5240', 'rgba(0,0,0,0.35)')
-    ctx.fillStyle = nearExit ? '#1a1505' : '#d8cfb4'
-    ctx.font = `8px ${pixelFontFamily()}`
-    ctx.textAlign = 'center'
-    ctx.textBaseline = 'middle'
-    ctx.fillText('EXIT', s.x, s.y)
-    // flechita hacia afuera
-    ctx.fillStyle = nearExit ? 'rgba(26,21,5,0.8)' : 'rgba(216,207,180,0.7)'
-    ctx.fillText('▼', s.x, s.y + 11)
-  }
-
-  // ================= ENTIDADES (orden por profundidad) =================
-  type Ent = { depth: number; draw: () => void }
-  const ents: Ent[] = []
-
-  // mostrador en L: dos cajas (2,1) y (1,2)
-  for (const c of [
-    { x: 2, y: 1 },
-    { x: 1, y: 2 },
-  ]) {
-    const counterTop = lighten(accent, 8)
+    const sC = origin(2, 1)
     ents.push({
-      depth: c.x + c.y - 0.1,
+      depth: sC.y + 1,
       draw: () => {
-        isoBox(ctx, origin, c.x, c.y, 30, '#caa066', darken(accent, 22), darken(accent, 38), 0.5)
-        // borde superior de madera clara
-        const n = origin(c.x - 0.5, c.y - 0.5)
-        const e = origin(c.x + 0.5, c.y - 0.5)
-        const s = origin(c.x + 0.5, c.y + 0.5)
-        const wv = origin(c.x - 0.5, c.y + 0.5)
-        ctx.fillStyle = '#e0bc84'
-        ctx.beginPath()
-        ctx.moveTo(n.x, n.y - 30)
-        ctx.lineTo(e.x, e.y - 30)
-        ctx.lineTo(s.x, s.y - 30)
-        ctx.lineTo(wv.x, wv.y - 30)
-        ctx.closePath()
-        ctx.fill()
-        void counterTop
+        isoBox(ctx, origin, 2, 1, 30, '#caa066', darken(accent, 22), darken(accent, 38), 0.5)
+        isoBox(ctx, origin, 1, 2, 30, '#caa066', darken(accent, 22), darken(accent, 38), 0.5)
+        drawCounterSign(ctx, sC.x + 22, sC.y - 57, cat.icon, cat.name, accent)
       },
     })
-  }
 
-  // caja registradora + placa de categoria sobre el mostrador. Es el mismo
-  // modulo para todas las tiendas; solo cambia icono/color/productos.
-  {
-    const s = origin(2, 1)
+    const npc = npcs[0]
+    const sN = origin(npc.x, npc.y)
     ents.push({
-      depth: 2 + 1 + 0.05,
+      depth: sN.y,
       draw: () => {
-        ctx.fillStyle = '#3b3f4a'
-        ctx.fillRect(s.x - 9, s.y - 30 - 12, 18, 12)
-        ctx.fillStyle = '#525866'
-        ctx.fillRect(s.x - 9, s.y - 30 - 12, 18, 3)
-        ctx.fillStyle = accent
-        ctx.fillRect(s.x - 6, s.y - 30 - 8, 12, 4)
-        drawCounterSign(ctx, s.x + 22, s.y - 57, cat.icon, cat.name, accent)
-      },
-    })
-  }
-
-  // NPC detras del mostrador
-  {
-    const s = origin(NPC_TILE.x, NPC_TILE.y)
-    ents.push({
-      depth: NPC_TILE.x + NPC_TILE.y,
-      draw: () => {
-        drawCharacter(ctx, s.x, s.y - 4, 'down', false, t, npcLook(cat))
-        if (nearCounter) {
-          const bob = Math.sin(t / 200) * 2
-          ctx.fillStyle = '#f4b740'
-          ctx.font = `700 20px ${sansFontFamily()}`
-          ctx.textAlign = 'center'
-          ctx.fillText('!', s.x, s.y - 64 + bob)
-        }
-      },
-    })
-  }
-
-  // mobiliario/merchandising propio del tema de esta tienda.
-  for (const d of theme.decor) {
-    const s = origin(d.x, d.y)
-    ents.push({
-      depth: d.x + d.y,
-      draw: () => {
-        switch (d.kind) {
-          case 'plant':
-            drawPotPlant(ctx, s.x, s.y)
-            break
-          case 'crate':
-            drawProductCrate(ctx, origin, d.x, d.y, cat)
-            break
-          case 'barrel':
-            drawBarrel(ctx, s.x, s.y, accent)
-            break
-          case 'display':
-            drawProductDisplay(ctx, origin, d.x, d.y, cat)
-            break
-          case 'rail':
-            drawClothingRail(ctx, s.x, s.y, cat)
-            break
-          case 'mannequin':
-            drawMannequin(ctx, s.x, s.y, accent)
-            break
-          case 'bench':
-            drawBench(ctx, origin, d.x, d.y)
-            break
-          case 'mirror':
-            drawMirror(ctx, s.x, s.y, accent)
-            break
-          case 'hatstand':
-            drawHatStand(ctx, s.x, s.y, cat)
-            break
-          case 'fireplace':
-            drawFireplace(ctx, s.x, s.y, t)
-            break
-        }
-      },
+        drawCharacter(ctx, sN.x, sN.y - 4, 'down', false, t, npcLook(cat))
+        drawNameTag(ctx, sN.x, sN.y - 4, npc.name)
+      }
     })
   }
 
@@ -554,7 +666,7 @@ export function drawInterior(
     for (const r of remotes) {
       const s = origin(r.x, r.y)
       ents.push({
-        depth: r.x + r.y,
+        depth: s.y,
         draw: () => {
           drawCharacter(ctx, s.x, s.y - 4, r.dir, r.moving, t, {
             ...r.look,
@@ -571,7 +683,7 @@ export function drawInterior(
   {
     const s = origin(player.x, player.y)
     ents.push({
-      depth: player.x + player.y,
+      depth: s.y,
       draw: () => {
         drawCharacter(ctx, s.x, s.y - 4, player.dir, player.walking, t, {
           ...player.look,
@@ -1163,5 +1275,108 @@ function drawHatStand(ctx: CanvasRenderingContext2D, sx: number, sy: number, cat
     ctx.fill()
   }
 }
+function drawFixture(
+  ctx: CanvasRenderingContext2D,
+  gx: number,
+  gy: number,
+  kind: string,
+  origin: Origin,
+  t: number,
+  cat: Category
+) {
+  const s = origin(gx, gy)
+  const accent = cat.color
+  switch (kind) {
+    case 'plant': drawPotPlant(ctx, s.x, s.y); break
+    case 'crate': drawProductCrate(ctx, origin, gx, gy, cat); break
+    case 'barrel': drawBarrel(ctx, s.x, s.y, accent); break
+    case 'display': drawProductDisplay(ctx, origin, gx, gy, cat); break
+    case 'rail': drawClothingRail(ctx, s.x, s.y, cat); break
+    case 'mannequin': drawMannequin(ctx, s.x, s.y, accent); break
+    case 'bench': drawBench(ctx, origin, gx, gy); break
+    case 'mirror': drawMirror(ctx, s.x, s.y, accent); break
+    case 'hatstand': drawHatStand(ctx, s.x, s.y, cat); break
+    case 'fireplace': drawFireplace(ctx, s.x, s.y, t); break
+    case 'f1_car': drawF1Car(ctx, s.x, s.y); break
+    case 'tire_rack': drawTireRack(ctx, s.x, s.y); break
+    case 'tool_chest': drawToolChest(ctx, s.x, s.y); break
+  }
+}
+
+function drawToolChest(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  // Red mechanic tool chest
+  const ox = sx
+  const oy = sy
+  isoBox(ctx, (gx, gy) => ({ x: ox, y: oy }), 0, 0, 24, '#d83a3a', '#a12323', '#801818', 0.1)
+  // Draw drawers
+  ctx.fillStyle = '#661111'
+  ctx.fillRect(sx + 2, sy - 20, 10, 2)
+  ctx.fillRect(sx + 2, sy - 15, 10, 2)
+  ctx.fillRect(sx + 2, sy - 10, 10, 2)
+  ctx.fillRect(sx + 2, sy - 5, 10, 2)
+  // Casters
+  ctx.fillStyle = '#111'
+  ctx.beginPath()
+  ctx.arc(sx, sy, 3, 0, Math.PI * 2)
+  ctx.arc(sx + 14, sy - 8, 3, 0, Math.PI * 2)
+  ctx.fill()
+}
+
+const f1CarImg = typeof window !== 'undefined' ? new window.Image() : null
+let f1CarCanvas: HTMLCanvasElement | null = null
+if (f1CarImg) {
+  f1CarImg.src = '/assets/f1_car.png'
+  f1CarImg.onload = () => {
+    f1CarCanvas = processChromaKey(f1CarImg)
+  }
+}
+
+const tireRackImg = typeof window !== 'undefined' ? new window.Image() : null
+let tireRackCanvas: HTMLCanvasElement | null = null
+if (tireRackImg) {
+  tireRackImg.src = '/assets/tire_rack.png'
+  tireRackImg.onload = () => {
+    tireRackCanvas = processChromaKey(tireRackImg)
+  }
+}
+
+function processChromaKey(img: HTMLImageElement) {
+  const c = document.createElement('canvas')
+  c.width = img.naturalWidth
+  c.height = img.naturalHeight
+  const cx = c.getContext('2d')
+  if (!cx) return c
+  cx.drawImage(img, 0, 0)
+  const idata = cx.getImageData(0, 0, c.width, c.height)
+  const d = idata.data
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i]
+    const g = d[i + 1]
+    const b = d[i + 2]
+    // Remove bright green pixels
+    if (g > 150 && r < 100 && b < 100) {
+      d[i + 3] = 0
+    }
+  }
+  cx.putImageData(idata, 0, 0)
+  return c
+}
+
+function drawTireRack(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  if (tireRackCanvas) {
+    const w = 80
+    const h = 80
+    ctx.drawImage(tireRackCanvas, sx - w / 2, sy - h + 20, w, h)
+  }
+}
+
+function drawF1Car(ctx: CanvasRenderingContext2D, sx: number, sy: number) {
+  if (f1CarCanvas) {
+    const w = 150
+    const h = 150
+    ctx.drawImage(f1CarCanvas, sx - w / 2, sy - h + 40, w, h)
+  }
+}
 
 export { roundRect }
+
