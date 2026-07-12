@@ -41,13 +41,13 @@ function evict() {
 }
 
 function makeCanvas(w: number, h: number): HTMLCanvasElement | OffscreenCanvas {
-  if (typeof document !== 'undefined') {
-    const c = document.createElement('canvas')
-    c.width = w
-    c.height = h
-    return c
+  if (typeof OffscreenCanvas !== 'undefined') {
+    return new OffscreenCanvas(w, h)
   }
-  return new OffscreenCanvas(w, h)
+  const c = document.createElement('canvas')
+  c.width = w
+  c.height = h
+  return c
 }
 
 // Escala de horneado: bucket entero de dpr*zoom (1..3). El ceil asegura que el

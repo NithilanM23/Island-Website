@@ -29,8 +29,13 @@ export function tileNoise(gx: number, gy: number): number {
 // so each tile gets many stable random values (blade positions, tones, etc.)
 // without flickering between frames.
 export function tileHash(gx: number, gy: number, k: number): number {
-  const n = Math.sin(gx * 127.1 + gy * 311.7 + k * 74.7) * 43758.5453
-  return n - Math.floor(n)
+  // Combine coordinates and channel into a single 32-bit integer
+  let h = (gx * 374761393) ^ (gy * 668265263) ^ (k * 2128858349)
+  // Murmur3 style integer mixer
+  h = Math.imul(h ^ (h >>> 16), 2246822507)
+  h = Math.imul(h ^ (h >>> 13), 3266489909)
+  h = (h ^ (h >>> 16)) >>> 0
+  return h / 4294967296
 }
 
 // Small deterministic PRNG so the texture is identical every build.

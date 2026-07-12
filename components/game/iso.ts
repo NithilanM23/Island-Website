@@ -94,10 +94,12 @@ let grassPattern: CanvasPattern | null = null
 let grassMacro: CanvasPattern | null = null
 
 function makePatternCanvas(size: number, scale = 1): HTMLCanvasElement | OffscreenCanvas {
-  const canvas =
-    typeof document !== 'undefined'
-      ? document.createElement('canvas')
-      : (new OffscreenCanvas(size * scale, size * scale) as unknown as HTMLCanvasElement)
+  let canvas: HTMLCanvasElement | OffscreenCanvas
+  if (typeof OffscreenCanvas !== 'undefined') {
+    canvas = new OffscreenCanvas(size * scale, size * scale) as unknown as HTMLCanvasElement
+  } else {
+    canvas = document.createElement('canvas')
+  }
   canvas.width = size * scale
   canvas.height = size * scale
   return canvas
