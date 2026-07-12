@@ -156,16 +156,16 @@ const SHOP_LAYOUT: Record<string, ShopLayout> = {
   research: { tile: { x: 7, y: 17 }, doorSide: 'right', approach: { x: 14, y: 19 } }, // west -> faces center
 }
 
-// Checkout stand: a small kiosk on the top-left corner of the central
-// plaza, facing the fountain like the shops. Opens the checkout dialog.
+// Info stand: a small kiosk on the top-left corner of the central
+// plaza, facing the fountain like the buildings. Opens the info dialog.
 const INFO_META: CategoryMeta = {
   id: 'info',
   handle: '',
-  name: 'Checkout',
-  npcName: 'Penny, the cashier',
-  greeting: 'Ready to pay? Bring your bag over!',
+  name: 'Info Desk',
+  npcName: 'Penny, the guide',
+  greeting: 'Welcome to the island! Need any help?',
   color: '#3eb489',
-  icon: 'bag',
+  icon: 'info',
   tile: { x: 19, y: 16 },
   swatch: '#3eb489',
 }

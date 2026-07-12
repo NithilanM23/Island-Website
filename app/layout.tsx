@@ -8,7 +8,7 @@ import './globals.css'
 export const metadata: Metadata = {
   title: "Nithilan's Island",
   description:
-    'A pixel isometric fashion district where every shop is a Shopify collection. Walk, step inside, and shop.',
+    'A pixel isometric portfolio district where every building is a showcase. Walk, step inside, and explore.',
   generator: 'v0.app',
   icons: {
     icon: '/image.png',
@@ -26,8 +26,7 @@ export default function RootLayout({
       className={`${GeistSans.variable} ${GeistMono.variable} ${GeistPixelSquare.variable} bg-background`}
     >
       <head>
-        {/* Product photos come from the Shopify CDN; connect early. */}
-        <link rel="preconnect" href="https://cdn.shopify.com" crossOrigin="anonymous" />
+        {/* Assets connect early. */}
       </head>
       <body className="font-sans antialiased">
         {children}

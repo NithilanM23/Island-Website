@@ -431,10 +431,10 @@ export function PlayerCustomizer({
           )}
           {/* hint matches the input device: joystick on touch, WASD on desktop */}
           <p className="mt-2.5 text-center text-[11px] text-muted-foreground sm:hidden">
-            Joystick to walk · Tap shops to browse · Pay at the checkout
+            Joystick to walk · Tap buildings to explore · Check the info desk
           </p>
           <p className="mt-2.5 hidden text-center text-[11px] text-muted-foreground sm:block">
-            WASD to walk · E to enter shops · Pay at the checkout
+            WASD to walk · E to enter buildings · Check the info desk
           </p>
         </div>
       </div>

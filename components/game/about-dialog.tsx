@@ -1,7 +1,7 @@
 'use client'
 
 // "About us" dialog opened from the information center building in the world.
-// Mirrors the shop dialog chrome: NPC header with speech bubble + content body.
+// Mirrors the dialog chrome: NPC header with speech bubble + content body.
 
 import { useEffect } from 'react'
 import { X, Info, Gamepad2, DoorOpen, CreditCard, Users } from 'lucide-react'
@@ -10,12 +10,12 @@ import { PixelAvatar } from './pixel-avatar'
 const INFO_COLOR = '#3eb489'
 
 export function AboutDialog({
-  shopName,
-  shopDescription,
+  placeName,
+  placeDescription,
   onClose,
 }: {
-  shopName: string
-  shopDescription: string | null
+  placeName: string
+  placeDescription: string | null
   onClose: () => void
 }) {
   useEffect(() => {
@@ -29,23 +29,23 @@ export function AboutDialog({
   const features = [
     {
       icon: <Gamepad2 className="h-4 w-4" />,
-      title: 'A real store, playable',
-      text: 'Every building is a live Shopify collection. Walk around with WASD or arrow keys.',
+      title: 'A real portfolio, playable',
+      text: 'Every building is a live project showcase. Walk around with WASD or arrow keys.',
     },
     {
       icon: <DoorOpen className="h-4 w-4" />,
       title: 'Browse inside',
-      text: 'Press E at a shop door to step inside and talk to the keeper to see products.',
+      text: 'Press E at a building door to step inside and explore the projects.',
     },
     {
       icon: <Users className="h-4 w-4" />,
-      title: 'Shop together',
-      text: 'Other shoppers appear live in the district. Press / to chat with them.',
+      title: 'Explore together',
+      text: 'Other visitors appear live in the district. Press / to chat with them.',
     },
     {
       icon: <CreditCard className="h-4 w-4" />,
-      title: 'Real checkout',
-      text: 'Your cart checks out through Shopify — real products, secure payment.',
+      title: 'Interactive details',
+      text: 'Read about the tech stack, see live demos, and interact with the content.',
     },
   ]
 
@@ -92,7 +92,7 @@ export function AboutDialog({
                 aria-hidden
               />
               <p className="relative text-base leading-relaxed text-secondary-foreground text-pretty">
-                {`Welcome to ${shopName}! Let me tell you how this place works.`}
+                {`Welcome to ${placeName}! Let me tell you how this place works.`}
               </p>
             </div>
           </div>
@@ -106,11 +106,10 @@ export function AboutDialog({
           </button>
         </div>
 
-        {/* Body */}
         <div className="flex flex-col gap-4 overflow-y-auto p-4 sm:p-5">
-          {shopDescription && (
+          {placeDescription && (
             <p className="text-sm leading-relaxed text-muted-foreground text-pretty">
-              {shopDescription}
+              {placeDescription}
             </p>
           )}
           <ul className="grid gap-3 sm:grid-cols-2">
