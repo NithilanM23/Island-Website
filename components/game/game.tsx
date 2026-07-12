@@ -868,6 +868,9 @@ export function Game() {
   const nearCounterRef = useRef(false)
   const [nearExit, setNearExit] = useState(false)
   const nearExitRef = useRef(false)
+  
+  const [nearDrone, setNearDrone] = useState(false)
+  const nearDroneRef = useRef(false)
 
   const { toasts, pushToast, dismissToast } = useGameToasts()
   const [portfolioOpen, setPortfolioOpen] = useState<PortfolioSection | null>(null)
@@ -881,7 +884,13 @@ export function Game() {
   // Name moderation gate on the start screen.
   const [nameChecking, setNameChecking] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
-  const pendingScene = useRef<{ scene: Scene; cat: CategoryMeta | null } | null>(null)
+  const pendingScene = useRef<{ scene: Scene; cat: CategoryMeta | null; teleport?: {x: number; y: number} } | null>(null)
+  const teleportMenuOpenRef = useRef(false)
+  const [teleportMenuOpen, setTeleportMenuOpen] = useState(false)
+  
+  useEffect(() => {
+    teleportMenuOpenRef.current = teleportMenuOpen
+  }, [teleportMenuOpen])
   const [onboardingStage, setOnboardingStage] = useState<'intro' | 'hint' | 'done' | null>(null)
 
   useEffect(() => {
@@ -1105,6 +1114,24 @@ export function Game() {
     pendingScene.current = { scene: 'world', cat: null }
   }, [])
 
+  const fastTravelTo = useCallback((cat: CategoryMeta) => {
+    if (fadeDir.current !== 0) return
+    fadeDir.current = 1
+    fadeRef.current = 0
+    // Set exit point to the approach tile of the new house (guaranteed safe)
+    const approach = SHOP_LAYOUT[cat.id]?.approach ?? { x: cat.tile.x + 1, y: cat.tile.y + 3 }
+    worldPos.current = { x: approach.x, y: approach.y }
+    nearCounterRef.current = false
+    setNearCounter(false)
+    nearExitRef.current = false
+    setNearExit(false)
+    nearbyRef.current = null
+    setNearby(null)
+    setTeleportMenuOpen(false)
+    // Signal interior transition, but flag as teleport for the cyan flash
+    pendingScene.current = { scene: 'interior', cat, teleport: { x: -1, y: -1 } }
+  }, [])
+
   const toggleCar = useCallback(() => {
     if (sceneRef.current !== 'world') return
     const p = player.current
@@ -1230,6 +1257,12 @@ export function Game() {
       }
       if (k === 'f') {
         toggleCar()
+        e.preventDefault()
+      }
+      if (k === 'x') {
+        if (playerLookRef.current.pet === 'drone' && sceneRef.current === 'world' && fadeDir.current === 0 && nearDroneRef.current) {
+          setTeleportMenuOpen((prev) => !prev)
+        }
         e.preventDefault()
       }
       if (k === 'b') {
@@ -1467,6 +1500,24 @@ export function Game() {
           petX: spawn.x,
           petY: spawn.y,
         }
+        if (pend.teleport) setTeleportMenuOpen(false)
+      } else if (pend.teleport) {
+        camRef.current = null
+        panRef.current.x = 0
+        panRef.current.y = 0
+        recenterRef.current = false
+        offCenterRef.current = false
+        setOffCenter(false)
+        player.current.x = pend.teleport.x
+        player.current.y = pend.teleport.y
+        player.current.prevX = pend.teleport.x
+        player.current.prevY = pend.teleport.y
+        player.current.rx = pend.teleport.x
+        player.current.ry = pend.teleport.y
+        player.current.petX = pend.teleport.x
+        player.current.petY = pend.teleport.y
+        player.current.isDriving = false
+        setTeleportMenuOpen(false)
       } else {
         sceneRef.current = 'world'
         insideRef.current = null
@@ -1557,6 +1608,12 @@ export function Game() {
       if (petDist > 0.8) {
         p.petX += petDx * 0.06
         p.petY += petDy * 0.06
+      }
+      
+      const isNearDrone = petDist < 1.5
+      if (isNearDrone !== nearDroneRef.current) {
+        nearDroneRef.current = isNearDrone
+        setNearDrone(isNearDrone)
       }
       
       // Proximidad segun escena
@@ -1728,7 +1785,13 @@ export function Game() {
       // overlay de transicion
       if (fadeRef.current > 0) {
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-        ctx.fillStyle = `rgba(12,10,18,${fadeRef.current})`
+        // Check if we are teleporting (cyan flash) or entering interior (black fade)
+        const isTeleporting = pendingScene.current?.teleport != null
+        if (isTeleporting) {
+          ctx.fillStyle = `rgba(0, 255, 255, ${fadeRef.current})`
+        } else {
+          ctx.fillStyle = `rgba(12,10,18,${fadeRef.current})`
+        }
         ctx.fillRect(0, 0, w, h)
       }
     }
@@ -2389,6 +2452,25 @@ export function Game() {
         </div>
       )}
 
+      {/* Drone Warp Desktop Prompt */}
+      {started && !activeDialogue && onboardingStage !== 'intro' && playerLook.pet === 'drone' && scene === 'world' && nearDrone && !portfolioOpen && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-36 z-10 hidden justify-center px-4 md:flex">
+          <div
+            style={{
+              borderColor: '#06b6d4',
+              boxShadow:
+                '0 0 0 2px #0b0f17, 0 6px 0 0 color-mix(in srgb, #06b6d4 33%, transparent), 0 10px 24px rgba(6,182,212,0.2)',
+            }}
+            className="flex items-center gap-2.5 rounded-md border-2 bg-[#10151f] px-3 py-2"
+          >
+            <span className="font-pixel flex h-6 w-6 items-center justify-center rounded border-2 border-cyan-400/55 bg-cyan-500 text-[10px] text-white">
+              X
+            </span>
+            <span className="font-pixel text-[11px] leading-snug text-cyan-50">Drone Warp</span>
+          </div>
+        </div>
+      )}
+
       {/* "View All Projects" prompt (only in projects room) */}
       {!portfolioOpen && inside?.id === 'projects' && (
         <div className="pointer-events-none absolute top-4 right-4 z-10 flex justify-end md:top-6 md:right-6">
@@ -2413,7 +2495,40 @@ export function Game() {
           onAction={doAction}
           actionEnabled={actionEnabled && !portfolioOpen}
           actionLabel={actionLabel}
+          onSecondaryAction={() => setTeleportMenuOpen((prev) => !prev)}
+          secondaryActionEnabled={playerLook.pet === 'drone' && scene === 'world' && fadeDir.current === 0 && nearDrone && !portfolioOpen}
+          secondaryActionLabel="Drone Warp"
         />
+      )}
+
+      {/* Teleport Menu */}
+      {teleportMenuOpen && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="w-full max-w-sm rounded-2xl border border-cyan-500/30 bg-[#0c1320]/95 p-6 shadow-[0_0_50px_rgba(0,255,255,0.15),inset_0_1px_0_rgba(255,255,255,0.1)]">
+            <div className="mb-6 text-center">
+              <h2 className="font-pixel text-xl text-cyan-400 drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]">Drone Fast Travel</h2>
+              <p className="mt-2 text-sm text-slate-300">Select a destination</p>
+            </div>
+            <div className="flex flex-col gap-3">
+              {HOUSES.filter(h => h.id !== 'hero' && h.id !== 'contact').map((house) => (
+                <button
+                  key={house.id}
+                  onClick={() => fastTravelTo(house)}
+                  className="group flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-4 py-3 transition-all hover:border-cyan-400/50 hover:bg-cyan-500/10 hover:shadow-[0_0_15px_rgba(0,255,255,0.2)]"
+                >
+                  <span className="font-medium text-slate-200 group-hover:text-cyan-100 transition-colors">{house.name}</span>
+                  <span className="font-pixel text-[10px] text-cyan-500/70 uppercase tracking-widest group-hover:text-cyan-400 transition-colors">Warp</span>
+                </button>
+              ))}
+              <button
+                onClick={() => setTeleportMenuOpen(false)}
+                className="mt-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2.5 text-sm font-medium text-destructive transition-colors hover:bg-destructive hover:text-destructive-foreground"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* dialog box */}

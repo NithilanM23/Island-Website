@@ -8,6 +8,9 @@ type Props = {
   onAction: () => void
   actionEnabled: boolean
   actionLabel: string
+  onSecondaryAction?: () => void
+  secondaryActionEnabled?: boolean
+  secondaryActionLabel?: string
 }
 
 const BASE = 132 // diameter of the joystick base ring (px)
@@ -17,7 +20,7 @@ const DEAD = 0.34 // normalized deadzone before a direction activates (8-way fee
 
 const DIRS: Dir[] = ['up', 'down', 'left', 'right']
 
-export function Joystick({ onPress, onAction, actionEnabled, actionLabel }: Props) {
+export function Joystick({ onPress, onAction, actionEnabled, actionLabel, onSecondaryAction, secondaryActionEnabled, secondaryActionLabel }: Props) {
   const baseRef = useRef<HTMLDivElement>(null)
   const pointerId = useRef<number | null>(null)
   // remember which directions are currently held so we only fire on change
@@ -130,8 +133,32 @@ export function Joystick({ onPress, onAction, actionEnabled, actionLabel }: Prop
         </div>
       </div>
 
-      {/* action button */}
-      <div className="pointer-events-none flex flex-col items-center gap-1.5">
+      {/* action buttons container */}
+      <div className="pointer-events-none flex items-end gap-3">
+        {/* secondary action button (Drone Fast Travel) */}
+        {secondaryActionEnabled && onSecondaryAction && (
+          <div className="flex flex-col items-center gap-1.5">
+            {secondaryActionLabel && (
+              <span className="font-pixel rounded-full border border-white/12 bg-[#0c1320]/90 px-2.5 py-1 text-[9px] text-cyan-400 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
+                {secondaryActionLabel}
+              </span>
+            )}
+            <button
+              type="button"
+              onPointerDown={(e) => {
+                e.preventDefault()
+                onSecondaryAction()
+              }}
+              className="font-pixel pointer-events-auto h-16 w-16 rounded-full border-2 border-cyan-400/80 bg-gradient-to-b from-cyan-500/80 to-cyan-700/80 text-sm text-white shadow-[0_8px_22px_rgba(0,255,255,0.3)] transition active:scale-90"
+              aria-label={secondaryActionLabel}
+            >
+              X
+            </button>
+          </div>
+        )}
+
+        {/* main action button */}
+        <div className="flex flex-col items-center gap-1.5">
         {actionEnabled && (
           <span className="font-pixel rounded-full border border-white/12 bg-[#0c1320]/90 px-2.5 py-1 text-[9px] text-white/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
             {actionLabel}
@@ -149,6 +176,7 @@ export function Joystick({ onPress, onAction, actionEnabled, actionLabel }: Prop
         >
           A
         </button>
+        </div>
       </div>
     </div>
   )
