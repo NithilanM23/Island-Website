@@ -81,7 +81,7 @@ export function Joystick({ onPress, onAction, actionEnabled, actionLabel }: Prop
       {/* arcade joystick */}
       <div
         ref={baseRef}
-        className="pointer-events-auto relative touch-none select-none rounded-full border border-white/15 bg-[#0c1320]/70 shadow-[0_10px_34px_rgba(0,0,0,0.5)] backdrop-blur-sm"
+        className="pointer-events-auto relative touch-none select-none rounded-full border border-white/15 bg-[#0c1320]/90 shadow-[0_10px_34px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)]"
         style={{ width: BASE, height: BASE }}
         onPointerDown={(e) => {
           e.preventDefault()
@@ -133,7 +133,7 @@ export function Joystick({ onPress, onAction, actionEnabled, actionLabel }: Prop
       {/* action button */}
       <div className="pointer-events-none flex flex-col items-center gap-1.5">
         {actionEnabled && (
-          <span className="font-pixel rounded-full border border-white/12 bg-black/55 px-2.5 py-1 text-[9px] text-white/85 backdrop-blur-sm">
+          <span className="font-pixel rounded-full border border-white/12 bg-[#0c1320]/90 px-2.5 py-1 text-[9px] text-white/85 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
             {actionLabel}
           </span>
         )}

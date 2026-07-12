@@ -1891,9 +1891,27 @@ export function Game() {
         })
       }
 
+      const screenToGrid = (screenX: number, screenY: number) => {
+        const sx = screenX - rCamX
+        const sy = screenY - rCamY
+        const u = sx / TILE_H
+        const v = (sy * 2) / TILE_H
+        return { gx: (u + v) / 2, gy: (v - u) / 2 }
+      }
+      const pCorners = [
+        screenToGrid(-TILE_H * 6, -TILE_H * 8),
+        screenToGrid(vw + TILE_H * 6, -TILE_H * 8),
+        screenToGrid(-TILE_H * 6, vh + TILE_H * 8),
+        screenToGrid(vw + TILE_H * 6, vh + TILE_H * 8),
+      ]
+      const minGx = Math.max(0, Math.floor(Math.min(...pCorners.map((c) => c.gx))))
+      const maxGx = Math.min(MAP_W - 1, Math.ceil(Math.max(...pCorners.map((c) => c.gx))))
+      const minGy = Math.max(0, Math.floor(Math.min(...pCorners.map((c) => c.gy))))
+      const maxGy = Math.min(MAP_H - 1, Math.ceil(Math.max(...pCorners.map((c) => c.gy))))
+
       // piso
-      for (let gy = 0; gy < MAP_H; gy++) {
-        for (let gx = 0; gx < MAP_W; gx++) {
+      for (let gy = minGy; gy <= maxGy; gy++) {
+        for (let gx = minGx; gx <= maxGx; gx++) {
           const s = origin(gx, gy)
           if (s.x < -TILE_H * 6 || s.x > vw + TILE_H * 6) continue
           if (s.y < -TILE_H * 8 || s.y > vh + TILE_H * 8) continue
@@ -2263,7 +2281,7 @@ export function Game() {
 
       {/* top HUD */}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start justify-between gap-3 p-3">
-        <div className="relative max-w-[55vw] overflow-hidden rounded-2xl border border-white/15 bg-[#0c1320]/45 px-3 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.4)] backdrop-blur-2xl md:max-w-md md:px-4 md:py-2.5">
+        <div className="relative max-w-[55vw] overflow-hidden rounded-2xl border border-white/15 bg-[#0c1320]/90 px-3 py-2 shadow-[0_8px_30px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] md:max-w-md md:px-4 md:py-2.5">
           <div
             aria-hidden
             className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/[0.08] via-transparent to-black/20"
@@ -2285,7 +2303,7 @@ export function Game() {
           layouts where the joystick owns the bottom-left corner. */}
       {started && (
         <div className="absolute bottom-3 left-3 z-10 hidden flex-col items-start gap-2 md:flex">
-          <div className="pointer-events-none rounded-lg border border-white/15 bg-[#0c1320]/45 px-3 py-2 text-[11px] text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4)] backdrop-blur-2xl">
+          <div className="pointer-events-none rounded-lg border border-white/15 bg-[#0c1320]/90 px-3 py-2 text-[11px] text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
             <span className="text-foreground">WASD / arrows</span> move ·{' '}
             <span className="text-foreground">Shift</span> run ·{' '}
             <span className="text-foreground">
@@ -2316,7 +2334,7 @@ export function Game() {
               }
             }}
             onBlur={() => setChatOpen(false)}
-            className="pointer-events-auto w-72 rounded-full border border-primary/60 bg-[#0c1320]/60 px-4 py-2 text-sm text-foreground shadow-lg outline-none backdrop-blur-2xl placeholder:text-muted-foreground focus:border-primary"
+            className="pointer-events-auto w-72 rounded-full border border-primary/60 bg-[#0c1320]/90 px-4 py-2 text-sm text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] outline-none placeholder:text-muted-foreground focus:border-primary"
           />
         </div>
       )}
@@ -2324,7 +2342,7 @@ export function Game() {
       {/* Rejected-message notice (rate limited or blocked by moderation) */}
       {started && chatNotice && (
         <div className="pointer-events-none absolute inset-x-0 bottom-32 z-30 flex justify-center px-4 duration-200 animate-in fade-in slide-in-from-bottom-2 md:bottom-28">
-          <p className="rounded-full border border-destructive/40 bg-[#0c1320]/80 px-4 py-1.5 text-xs text-destructive-foreground shadow-lg backdrop-blur-xl">
+          <p className="rounded-full border border-destructive/40 bg-[#0c1320]/95 px-4 py-1.5 text-xs text-destructive-foreground shadow-lg">
             {chatNotice}
           </p>
         </div>
@@ -2339,7 +2357,7 @@ export function Game() {
               recenterRef.current = true
             }}
             aria-label="Recenter camera on your player"
-            className="pointer-events-auto flex items-center gap-2 rounded-lg border border-primary/70 bg-[#0c1320]/55 px-3 py-2 text-sm text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4)] backdrop-blur-2xl transition-colors hover:border-primary hover:bg-[#0c1320]/75"
+            className="pointer-events-auto flex items-center gap-2 rounded-lg border border-primary/70 bg-[#0c1320]/90 px-3 py-2 text-sm text-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] transition-colors hover:border-primary hover:bg-[#0c1320]/100"
           >
             <LocateFixed className="h-4 w-4 text-primary" />
             <span className="font-medium">Focus player</span>
@@ -2356,7 +2374,7 @@ export function Game() {
               boxShadow:
                 '0 0 0 2px #0b0f17, 0 6px 0 0 color-mix(in srgb, var(--primary) 33%, transparent), 0 10px 24px rgba(0,0,0,0.5)',
             }}
-            className="flex items-center gap-2.5 rounded-md border-2 bg-[#10151f]/95 px-3 py-2 backdrop-blur"
+            className="flex items-center gap-2.5 rounded-md border-2 bg-[#10151f] px-3 py-2"
           >
             <span className="font-pixel hidden h-6 w-6 items-center justify-center rounded border-2 border-primary/55 bg-primary text-[10px] text-primary-foreground md:flex">
               {actionKey}
