@@ -70,6 +70,7 @@ import {
 import { Joystick } from './joystick'
 import { GameToasts, useGameToasts } from './toasts'
 import { PlayerCustomizer } from './player-customizer'
+import { WelcomeScreen } from './welcome-screen'
 import { PortfolioDialog } from './portfolio-dialog'
 
 export type { Dir }
@@ -879,6 +880,7 @@ export function Game() {
   const portfolioOpenRef = useRef<PortfolioSection | null>(null)
   portfolioOpenRef.current = portfolioOpen
   const [playerLook, setPlayerLook] = useState<PlayerLook>(DEFAULT_PLAYER_LOOK)
+  const [showWelcome, setShowWelcome] = useState(true)
   const [started, setStarted] = useState(false)
   const [playerName, setPlayerName] = useState('')
   // Name moderation gate on the start screen.
@@ -2610,18 +2612,28 @@ export function Game() {
           {/* min-h-full + m-auto centers the card when it fits and allows full
               scrolling (no clipped top) when it is taller than the viewport */}
           <div className="flex min-h-full items-center justify-center px-4 py-6 sm:px-6 sm:py-8">
-            <PlayerCustomizer
-              look={playerLook}
-              onChange={setPlayerLook}
-              onStart={() => void handleStart()}
-              name={playerName}
-              onNameChange={(n) => {
-                setNameError(null)
-                setPlayerName(n)
-              }}
-              starting={nameChecking}
-              nameError={nameError}
-            />
+            {showWelcome ? (
+              <WelcomeScreen
+                onStartExploring={() => setShowWelcome(false)}
+                onBypass={() => {
+                  setStarted(true) // allow the game to start quietly in the background
+                  setPortfolioOpen('projects') // immediately open portfolio overlay
+                }}
+              />
+            ) : (
+              <PlayerCustomizer
+                look={playerLook}
+                onChange={setPlayerLook}
+                onStart={() => void handleStart()}
+                name={playerName}
+                onNameChange={(n) => {
+                  setNameError(null)
+                  setPlayerName(n)
+                }}
+                starting={nameChecking}
+                nameError={nameError}
+              />
+            )}
           </div>
         </div>
       )}

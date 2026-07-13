@@ -14,6 +14,56 @@ export type DialogueNode = {
 
 // Mapped by the category/project ID
 export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
+  about: {
+    start: {
+      id: 'start',
+      text: "Hey there! Do you wanna know more about Mr. Nithilan?",
+      options: [
+        { label: 'Yes, tell me more!', action: 'open_portfolio' },
+        { label: 'No thanks, just looking around.', action: 'exit' },
+      ]
+    }
+  },
+  experience: {
+    start: {
+      id: 'start',
+      text: "Welcome! Are you interested in exploring Mr. Nithilan's professional journey and work experience?",
+      options: [
+        { label: 'Show me his experience.', action: 'open_portfolio' },
+        { label: 'Not right now.', action: 'exit' },
+      ]
+    }
+  },
+  skills: {
+    start: {
+      id: 'start',
+      text: "Hello! Want to see the tools, languages, and technologies Mr. Nithilan has mastered?",
+      options: [
+        { label: 'View his skills.', action: 'open_portfolio' },
+        { label: 'Maybe later.', action: 'exit' },
+      ]
+    }
+  },
+  research: {
+    start: {
+      id: 'start',
+      text: "Greetings! Would you like to read about Mr. Nithilan's research and academic publications?",
+      options: [
+        { label: 'Show me his publications.', action: 'open_portfolio' },
+        { label: "I'll pass.", action: 'exit' },
+      ]
+    }
+  },
+  contact: {
+    start: {
+      id: 'start',
+      text: "Hi there! Are you looking to get in touch with Mr. Nithilan or see his social links?",
+      options: [
+        { label: 'Yes, show me the contact info.', action: 'open_portfolio' },
+        { label: 'No, just wandering around.', action: 'exit' },
+      ]
+    }
+  },
   onboarding_intro: {
     start: {
       id: 'start',

@@ -31,6 +31,7 @@ import {
   type StoreIcon,
 } from './iso'
 import type { Category } from '@/lib/game-data'
+import { DIALOGUE_TREES } from '@/lib/dialogue-data'
 
 // Dimensiones de la sala (en celdas).
 export const ROOM_W_BASE = 7
@@ -489,8 +490,11 @@ export function drawInterior(
     return { x: Math.round(s.x + camX), y: Math.round(s.y + camY) }
   }
 
-  const leftCorner = origin(0, -0.5)
-  const backCorner = origin(0, 0)
+  // For the projects house, keep the original behavior to avoid disturbing its layout.
+  // For standard houses, use proper grid-aligned corners (-0.5 offsets).
+  const isProjects = cat.id === 'projects'
+  const leftCorner = isProjects ? origin(0, -0.5) : origin(-0.5, ROOM_H - 0.5)
+  const backCorner = isProjects ? origin(0, 0) : origin(-0.5, -0.5)
   const rightCorner = origin(wSize - 0.5, -0.5)
 
   // halo calido detras (como luz de techo)
@@ -585,10 +589,16 @@ export function drawInterior(
   }
   ctx.restore()
 
-  // tapete salida
+  // tapete salida (made larger and more obvious)
   const exitT = getExitTile(cat)
   const exit = origin(exitT.x, exitT.y)
-  drawDiamond(ctx, exit.x, exit.y + 4, '#8f4646', undefined, TILE_W * 0.7, TILE_H * 0.7)
+  drawDiamond(ctx, exit.x, exit.y + 4, '#8f4646', undefined, TILE_W * 1.5, TILE_H * 1.2)
+  
+  // Draw an explicit "EXIT" or arrow indicator on the mat to make it very clear
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+  ctx.font = `bold 10px ${sansFontFamily}`
+  ctx.textAlign = 'center'
+  ctx.fillText('EXIT', exit.x, exit.y + 12)
 
   // Muebles, personajes, paredes. Ordenados por profundidad (gy + gx).
   const ents: { depth: number; draw: () => void }[] = []
@@ -662,6 +672,12 @@ export function drawInterior(
       draw: () => {
         drawCharacter(ctx, sN.x, sN.y - 4, 'down', false, t, npcLook(cat))
         drawNameTag(ctx, sN.x, sN.y - 4, npc.name)
+        
+        // Draw hovering chat bubble with greeting (except for projects)
+        if (cat.id !== 'projects') {
+          const text = DIALOGUE_TREES[cat.id]?.start.text || cat.greeting
+          drawChatBubble(ctx, sN.x, sN.y - 4, text, Date.now())
+        }
       }
     })
   }
