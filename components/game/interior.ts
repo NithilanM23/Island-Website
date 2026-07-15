@@ -60,9 +60,9 @@ export function getZoneIndex(gx: number) {
 export function getNPCs(cat?: Category) {
   if (cat?.id === 'projects') {
     return [
-      { id: 'project_f1', x: 5, y: 1, name: 'Mechanic' },
+      { id: 'project_magicstory', x: 3, y: 1, name: 'Librarian' },
       { id: 'project_cashdabba', x: 12, y: 1, name: 'Banker' },
-      { id: 'project_magicstory', x: 18, y: 1, name: 'Librarian' },
+      { id: 'project_f1', x: 20, y: 1, name: 'Mechanic' },
       { id: 'project_rag', x: 23.5, y: 1, name: 'AI Engineer' }
     ]
   }
@@ -326,12 +326,15 @@ export function interiorBlocked(cat?: Category): Set<string> {
 
   if (cat?.id === 'projects') {
     // Add specific decor for the 4 zones
-    const themes = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_rag']
+    const themes = ['project_magicstory', 'project_cashdabba', 'project_f1', 'project_rag']
     themes.forEach((themeId, i) => {
       const offsetX = getZoneOffset(i)
       const theme = THEMES[themeId]
       if (theme) {
-        for (const d of theme.decor) b.add(`${d.x + offsetX},${d.y}`)
+        for (const d of theme.decor) {
+          if (d.kind === 'tire_rack') continue
+          b.add(`${d.x + offsetX},${d.y}`)
+        }
       }
     })
   } else {
@@ -520,7 +523,7 @@ export function drawInterior(
   // Piso (dibujado celda por celda por depth sorting no aplica al piso,
   // y nos permite tener varios estilos)
   if (cat.id === 'projects') {
-    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_rag']
+    const zones = ['project_magicstory', 'project_cashdabba', 'project_f1', 'project_rag']
     for (let gy = 0; gy < ROOM_H; gy++) {
       for (let gx = 0; gx < wSize; gx++) {
         const zoneIdx = getZoneIndex(gx)
@@ -593,7 +596,7 @@ export function drawInterior(
   const exitT = getExitTile(cat)
   const exit = origin(exitT.x, exitT.y)
   drawDiamond(ctx, exit.x, exit.y + 4, '#8f4646', undefined, TILE_W * 1.5, TILE_H * 1.2)
-  
+
   // Draw an explicit "EXIT" or arrow indicator on the mat to make it very clear
   ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
   ctx.font = `bold 10px ${sansFontFamily}`
@@ -606,7 +609,7 @@ export function drawInterior(
   // Props & NPCs
   const npcs = getNPCs(cat)
   if (cat.id === 'projects') {
-    const zones = ['project_f1', 'project_cashdabba', 'project_magicstory', 'project_rag']
+    const zones = ['project_magicstory', 'project_cashdabba', 'project_f1', 'project_rag']
     zones.forEach((zone, i) => {
       const offsetX = getZoneOffset(i)
       const zTheme = THEMES[zone]
@@ -672,7 +675,7 @@ export function drawInterior(
       draw: () => {
         drawCharacter(ctx, sN.x, sN.y - 4, 'down', false, t, npcLook(cat))
         drawNameTag(ctx, sN.x, sN.y - 4, npc.name)
-        
+
         // Draw hovering chat bubble with greeting (except for projects)
         if (cat.id !== 'projects') {
           const text = DIALOGUE_TREES[cat.id]?.start.text || cat.greeting
