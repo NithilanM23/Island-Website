@@ -67,17 +67,17 @@ export const DIALOGUE_TREES: Record<string, Record<string, DialogueNode>> = {
   onboarding_intro: {
     start: {
       id: 'start',
-      text: "Hey there! I'm Nithilan, the owner of this digital island. Welcome to my world!",
+      text: "Hey there! I'm Nithilan, the creator of this digital island. Welcome to my world!",
       options: [
-        { label: 'Nice to meet you!', nextNodeId: 'hurry' },
+        { label: 'Nice to meet you! How does this work?', nextNodeId: 'tutorial' },
+        { label: 'Thanks, I will explore on my own.', action: 'finish_intro' },
       ]
     },
-    hurry: {
-      id: 'hurry',
-      text: "If you're in a hurry, I can just teleport you straight to my classic portfolio website. Otherwise, feel free to explore the island!",
+    tutorial: {
+      id: 'tutorial',
+      text: "You can walk using WASD or Arrow keys. Walk inside buildings to explore my portfolio. Also, if you press 'X' when your drone is nearby, you can instantly warp anywhere on the island!",
       options: [
-        { label: "I'm in a rush! Take me there.", action: 'redirect_external' },
-        { label: "I want to explore the island.", action: 'finish_intro' }
+        { label: 'Got it! Let\'s go.', action: 'finish_intro' }
       ]
     }
   },

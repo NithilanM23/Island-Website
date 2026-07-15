@@ -876,6 +876,10 @@ export function Game() {
   const { toasts, pushToast, dismissToast } = useGameToasts()
   const [portfolioOpen, setPortfolioOpen] = useState<PortfolioSection | null>(null)
   const [activeDialogue, setActiveDialogue] = useState<string | null>(null)
+  const activeDialogueRef = useRef<string | null>(null)
+  useEffect(() => {
+    activeDialogueRef.current = activeDialogue
+  }, [activeDialogue])
   const [portfolioSubSection, setPortfolioSubSection] = useState<string | null>(null)
   const portfolioOpenRef = useRef<PortfolioSection | null>(null)
   portfolioOpenRef.current = portfolioOpen
@@ -1240,6 +1244,7 @@ export function Game() {
     }
     function down(e: KeyboardEvent) {
       if (isTyping(e)) return
+      if (activeDialogueRef.current) return // Disable game actions while in dialogue
       const k = e.key?.toLowerCase() || ''
       // "/" opens the Figma-style chat input.
       if (k === '/') {
@@ -1275,6 +1280,7 @@ export function Game() {
       }
     }
     function up(e: KeyboardEvent) {
+      if (activeDialogueRef.current) return
       const k = e.key?.toLowerCase() || ''
       // Sync run state on every release, even while focus is in an input,
       // otherwise a missed Shift keyup leaves the player sprinting.
@@ -2616,8 +2622,7 @@ export function Game() {
               <WelcomeScreen
                 onStartExploring={() => setShowWelcome(false)}
                 onBypass={() => {
-                  setStarted(true) // allow the game to start quietly in the background
-                  setPortfolioOpen('projects') // immediately open portfolio overlay
+                  window.location.href = 'https://nithilan-portfolio.vercel.app'
                 }}
               />
             ) : (

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useRef, useState, useEffect } from 'react'
 import type { Dir } from './game'
 
 type Props = {
@@ -75,11 +75,25 @@ export function Joystick({ onPress, onAction, actionEnabled, actionLabel, onSeco
     },
     [apply],
   )
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      releaseAll()
+      setKnob({ x: 0, y: 0 })
+      setDragging(false)
+      pointerId.current = null
+    }
+    window.addEventListener('orientationchange', handleOrientationChange)
+    return () => window.removeEventListener('orientationchange', handleOrientationChange)
+  }, [releaseAll])
 
   return (
     <div
       className="no-touch-callout pointer-events-none fixed inset-x-0 bottom-0 z-20 flex items-end justify-between gap-4 p-4 md:hidden"
-      style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)' }}
+      style={{ 
+        paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
+        paddingLeft: 'calc(env(safe-area-inset-left, 0px) + 1rem)',
+        paddingRight: 'calc(env(safe-area-inset-right, 0px) + 1rem)',
+      }}
     >
       {/* arcade joystick */}
       <div

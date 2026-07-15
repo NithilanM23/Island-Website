@@ -16,6 +16,7 @@ export function DialogueBox({ projectId, npcName, onAction, onClose }: DialogueB
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(true)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   
   const node = tree?.[currentNodeId]
 
@@ -25,24 +26,38 @@ export function DialogueBox({ projectId, npcName, onAction, onClose }: DialogueB
     setDisplayedText('')
     setIsTyping(true)
     let i = 0
-    const interval = setInterval(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current)
+    
+    intervalRef.current = setInterval(() => {
       if (i < node.text.length) {
         setDisplayedText(node.text.slice(0, i + 1))
         i++
       } else {
         setIsTyping(false)
-        clearInterval(interval)
+        if (intervalRef.current) clearInterval(intervalRef.current)
       }
     }, 25) // Typing speed
     
-    return () => clearInterval(interval)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
   }, [node])
 
   // Keyboard navigation
   useEffect(() => {
-    if (!node || isTyping) return
+    if (!node) return
     
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (isTyping) {
+        if (e.key === 'Enter' || e.key === 'e' || e.key === ' ') {
+          e.preventDefault()
+          setIsTyping(false)
+          setDisplayedText(node.text)
+          if (intervalRef.current) clearInterval(intervalRef.current)
+        }
+        return
+      }
+
       if (e.key === 'ArrowDown' || e.key === 's') {
         setSelectedIndex((prev) => (prev + 1) % node.options.length)
       } else if (e.key === 'ArrowUp' || e.key === 'w') {

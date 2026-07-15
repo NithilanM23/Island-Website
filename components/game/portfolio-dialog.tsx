@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { X, Code, ExternalLink, ChevronRight } from 'lucide-react'
 import { portfolioContent, SECTION_META, type PortfolioSection } from '@/lib/portfolio-data'
 
@@ -8,18 +9,33 @@ interface PortfolioDialogProps {
 }
 
 export function PortfolioDialog({ section, subSection, onClose }: PortfolioDialogProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
   if (!section) return null
 
   const sectionMeta = SECTION_META.find((s) => s.id === section)
   if (!sectionMeta) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose()
+      }}
+    >
       <div
-        className="bg-background rounded-lg shadow-xl max-w-2xl w-full max-h-96 overflow-y-auto"
+        className="bg-background rounded-lg shadow-xl max-w-2xl w-full max-h-[85vh] overflow-y-auto"
         style={{ borderTop: `4px solid ${sectionMeta.color}` }}
       >
-        <div className="flex items-center justify-between p-6 border-b border-border">
+        <div className="sticky top-0 bg-background z-10 flex items-center justify-between p-6 border-b border-border shadow-sm">
           <h2 className="text-2xl font-bold">{sectionMeta.name}</h2>
           <button
             onClick={onClose}
@@ -118,7 +134,6 @@ function ExperienceSection() {
   )
 }
 
-import { useEffect, useRef } from 'react'
 
 function ProjectsSection({ subSection }: { subSection?: string | null }) {
   const projects = portfolioContent.projects
