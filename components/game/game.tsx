@@ -887,6 +887,17 @@ export function Game() {
   const [showWelcome, setShowWelcome] = useState(true)
   const [started, setStarted] = useState(false)
   const [playerName, setPlayerName] = useState('')
+
+  useEffect(() => {
+    const savedName = sessionStorage.getItem('playerName')
+    const savedLook = sessionStorage.getItem('playerLook')
+    if (savedName && savedLook) {
+      setPlayerName(savedName)
+      try {
+        setPlayerLook(JSON.parse(savedLook))
+      } catch (e) {}
+    }
+  }, [])
   // Name moderation gate on the start screen.
   const [nameChecking, setNameChecking] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
@@ -937,6 +948,8 @@ export function Game() {
       // Use the sanitized name the server approved.
       if (data.text) setPlayerName(data.text)
       setStarted(true)
+      sessionStorage.setItem('playerName', data.text || playerName)
+      sessionStorage.setItem('playerLook', JSON.stringify(playerLook))
       if (!sessionStorage.getItem('hasVisitedIsland')) {
         setOnboardingStage('intro')
         sessionStorage.setItem('hasVisitedIsland', 'true')
@@ -945,6 +958,8 @@ export function Game() {
       }
     } catch {
       setStarted(true)
+      sessionStorage.setItem('playerName', playerName)
+      sessionStorage.setItem('playerLook', JSON.stringify(playerLook))
       if (!sessionStorage.getItem('hasVisitedIsland')) {
         setOnboardingStage('intro')
         sessionStorage.setItem('hasVisitedIsland', 'true')
@@ -2641,7 +2656,12 @@ export function Game() {
           <div className="flex min-h-full items-center justify-center px-4 py-6 sm:px-6 sm:py-8">
             {showWelcome ? (
               <WelcomeScreen
-                onStartExploring={() => setShowWelcome(false)}
+                onStartExploring={() => {
+                  setShowWelcome(false)
+                  if (sessionStorage.getItem('playerName') && sessionStorage.getItem('playerLook')) {
+                    setStarted(true)
+                  }
+                }}
                 onBypass={() => {
                   window.location.href = 'https://nithilan-portfolio.vercel.app'
                 }}
