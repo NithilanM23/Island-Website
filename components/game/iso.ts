@@ -5720,14 +5720,14 @@ export function drawChatBubble(
   const alpha = Math.min(1, remaining / 600)
 
   ctx.save()
-  ctx.font = `600 12px ${sansFontFamily()}`
+  ctx.font = `600 10px ${sansFontFamily()}`
   ctx.textAlign = 'left'
   ctx.textBaseline = 'top'
 
-  const maxW = 160
-  const padX = 9
-  const padY = 7
-  const lineH = 15
+  const maxW = 140
+  const padX = 7
+  const padY = 5
+  const lineH = 13
 
   // Word-wrap to a max width, capped at 3 lines.
   const words = text.split(/\s+/)

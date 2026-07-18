@@ -2151,6 +2151,27 @@ export function Game() {
         )
       }
 
+      // Add the assistant NPC outside the projects house
+      {
+        const chefTile = { x: 40, y: 22 }
+        const sChef = origin(chefTile.x, chefTile.y)
+        pushEnt(
+          chefTile.x,
+          chefTile.y,
+          () => {
+            drawCharacter(ctx, sChef.x, sChef.y, 'up', false, t, {
+              skin: '#8e5c43',
+              shirt: '#ffffff',
+              pants: '#333333',
+            })
+            drawNameTag(ctx, sChef.x, sChef.y, 'Assistant')
+            drawChatBubble(ctx, sChef.x, sChef.y, 'Shh... Mr. Nithilan is cooking up something epic inside!', Infinity)
+          },
+          0.5,
+          0.5
+        )
+      }
+
       // remote players currently on the world map (multiplayer presence),
       // glided toward their latest network position for fluid motion
       for (const remote of remotesRef.current) {
