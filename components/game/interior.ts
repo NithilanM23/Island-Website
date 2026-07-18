@@ -71,7 +71,10 @@ export function getNPCs(cat?: Category) {
 
 export function getExitTile(cat?: Category) {
   const w = getRoomW(cat)
-  return { x: Math.floor(w / 2), y: ROOM_H - 1 }
+  if (cat?.id === 'projects') {
+    return { x: Math.floor(w / 2), y: ROOM_H - 1 }
+  }
+  return { x: w - 1, y: ROOM_H - 1 }
 }
 
 export function getPlayerSpawn(cat?: Category) {
@@ -542,34 +545,67 @@ export function drawInterior(
   function drawFloorTile(c: CanvasRenderingContext2D, gx: number, gy: number, th: InteriorTheme, o: Origin) {
     const s = o(gx, gy)
     c.beginPath()
-    c.moveTo(s.x, s.y)
-    c.lineTo(s.x + TILE_W / 2, s.y + TILE_H / 2)
-    c.lineTo(s.x, s.y + TILE_H)
-    c.lineTo(s.x - TILE_W / 2, s.y + TILE_H / 2)
-    c.closePath()
-
-    if (th.floor === 'checker') {
-      c.fillStyle = (gx + gy) % 2 === 0 ? th.floorA : th.floorB
-      c.fill()
-    } else if (th.floor === 'planks') {
-      c.fillStyle = th.floorA
-      c.fill()
-      c.fillStyle = th.grout
-      c.beginPath()
+    
+    if (isProjects) {
       c.moveTo(s.x, s.y)
+      c.lineTo(s.x + TILE_W / 2, s.y + TILE_H / 2)
+      c.lineTo(s.x, s.y + TILE_H)
       c.lineTo(s.x - TILE_W / 2, s.y + TILE_H / 2)
-      c.stroke()
-      c.beginPath()
-      const mx = s.x - TILE_W / 4
-      const my = s.y + TILE_H / 4
-      c.moveTo(mx, my)
-      c.lineTo(mx + TILE_W / 2, my + TILE_H / 2)
-      c.stroke()
+      c.closePath()
+
+      if (th.floor === 'checker') {
+        c.fillStyle = (gx + gy) % 2 === 0 ? th.floorA : th.floorB
+        c.fill()
+      } else if (th.floor === 'planks') {
+        c.fillStyle = th.floorA
+        c.fill()
+        c.fillStyle = th.grout
+        c.beginPath()
+        c.moveTo(s.x, s.y)
+        c.lineTo(s.x - TILE_W / 2, s.y + TILE_H / 2)
+        c.stroke()
+        c.beginPath()
+        const mx = s.x - TILE_W / 4
+        const my = s.y + TILE_H / 4
+        c.moveTo(mx, my)
+        c.lineTo(mx + TILE_W / 2, my + TILE_H / 2)
+        c.stroke()
+      } else {
+        c.fillStyle = th.floorA
+        c.fill()
+        c.fillStyle = th.grout
+        c.stroke()
+      }
     } else {
-      c.fillStyle = th.floorA
-      c.fill()
-      c.fillStyle = th.grout
-      c.stroke()
+      c.moveTo(s.x, s.y - TILE_H / 2)
+      c.lineTo(s.x + TILE_W / 2, s.y)
+      c.lineTo(s.x, s.y + TILE_H / 2)
+      c.lineTo(s.x - TILE_W / 2, s.y)
+      c.closePath()
+
+      if (th.floor === 'checker') {
+        c.fillStyle = (gx + gy) % 2 === 0 ? th.floorA : th.floorB
+        c.fill()
+      } else if (th.floor === 'planks') {
+        c.fillStyle = th.floorA
+        c.fill()
+        c.fillStyle = th.grout
+        c.beginPath()
+        c.moveTo(s.x, s.y - TILE_H / 2)
+        c.lineTo(s.x - TILE_W / 2, s.y)
+        c.stroke()
+        c.beginPath()
+        const mx = s.x - TILE_W / 4
+        const my = s.y - TILE_H / 4
+        c.moveTo(mx, my)
+        c.lineTo(mx + TILE_W / 2, my + TILE_H / 2)
+        c.stroke()
+      } else {
+        c.fillStyle = th.floorA
+        c.fill()
+        c.fillStyle = th.grout
+        c.stroke()
+      }
     }
   }
 
@@ -595,13 +631,20 @@ export function drawInterior(
   // tapete salida (made larger and more obvious)
   const exitT = getExitTile(cat)
   const exit = origin(exitT.x, exitT.y)
-  drawDiamond(ctx, exit.x, exit.y + 4, '#8f4646', undefined, TILE_W * 1.5, TILE_H * 1.2)
-
-  // Draw an explicit "EXIT" or arrow indicator on the mat to make it very clear
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-  ctx.font = `bold 10px ${sansFontFamily}`
-  ctx.textAlign = 'center'
-  ctx.fillText('EXIT', exit.x, exit.y + 12)
+  
+  if (isProjects) {
+    drawDiamond(ctx, exit.x, exit.y + 4, '#8f4646', undefined, TILE_W * 1.5, TILE_H * 1.2)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    ctx.font = `bold 10px ${sansFontFamily}`
+    ctx.textAlign = 'center'
+    ctx.fillText('EXIT', exit.x, exit.y + 12)
+  } else {
+    drawDiamond(ctx, exit.x, exit.y, '#8f4646', undefined, TILE_W * 1.5, TILE_H * 1.2)
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
+    ctx.font = `bold 10px ${sansFontFamily}`
+    ctx.textAlign = 'center'
+    ctx.fillText('EXIT', exit.x, exit.y + 4)
+  }
 
   // Muebles, personajes, paredes. Ordenados por profundidad (gy + gx).
   const ents: { depth: number; draw: () => void }[] = []

@@ -4614,6 +4614,7 @@ export function drawHouse(
     pants: { wall: 'plaster', roof: 'hip', awning: 'straight' },
     hat: { wall: 'wood', roof: 'flat', awning: 'scallop' },
     bag: { wall: 'brick', roof: 'gable', awning: 'straight', chimney: true },
+    info: { wall: 'brick', roof: 'gable', awning: 'straight', chimney: true },
   }
   const style = STYLES[icon] ?? { wall: 'plaster' as WallMat, roof: 'flat' as RoofKind, awning: 'scallop' as AwningKind }
   // Set by the roof branches below: where the chimney stack should sit.
