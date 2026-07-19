@@ -49,7 +49,7 @@ export const CATEGORY_META: CategoryMeta[] = [
     npcName: 'About Me',
     greeting: 'Learn more about who I am',
     color: '#3e9bd6',
-    icon: 'shirt',
+    icon: 'pants',
     tile: { x: 2, y: 2 },
     swatch: '#3e9bd6',
   },
