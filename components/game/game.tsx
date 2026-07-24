@@ -2173,8 +2173,31 @@ export function Game() {
         if (s.y < -TILE_H * 8 || s.y > vh + TILE_H * 8) continue
         const seed = (d.x * 7 + d.y * 13) % 3
         pushEnt(d.x, d.y, () => {
-          if (d.type === 'bridgeSign')
+          if (d.type === 'bridgeSign') {
             drawBridgeSign(ctx, s.x, s.y, signDestsFor(d.ids), signAngle(d.dirX, d.dirY), seed)
+
+            const dx = player.current.rx - d.x
+            const dy = player.current.ry - d.y
+            if (dx * dx + dy * dy < 8) {
+              const bounce = Math.sin(t * 6) * 5
+              ctx.save()
+              ctx.translate(s.x, s.y - 65 + bounce)
+              ctx.rotate(signAngle(d.dirX, d.dirY))
+              
+              ctx.fillStyle = '#ffeb3b'
+              ctx.strokeStyle = 'rgba(0,0,0,0.8)'
+              ctx.lineWidth = 2
+              ctx.beginPath()
+              ctx.moveTo(-10, -12)
+              ctx.lineTo(14, 0)
+              ctx.lineTo(-10, 12)
+              ctx.lineTo(-4, 0)
+              ctx.closePath()
+              ctx.fill()
+              ctx.stroke()
+              ctx.restore()
+            }
+          }
         }, 0.4, 0.4)
       }
 

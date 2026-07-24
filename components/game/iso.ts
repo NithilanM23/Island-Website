@@ -3726,11 +3726,11 @@ function drawMinimalArrow(ctx: CanvasRenderingContext2D, x: number, y: number, a
   ctx.lineCap = 'round'
   ctx.lineJoin = 'round'
 
-  // compact geometry: short tapered shaft, swept-back barbs
-  const tip = 2.5
-  const tail = -2.9
-  const barb = 1.9 // barb length back from the tip
-  const spread = 1.5 // barb half-height
+  // enlarged geometry for visibility
+  const tip = 7.5
+  const tail = -8.7
+  const barb = 5.7
+  const spread = 4.5
 
   const shaft = () => {
     ctx.beginPath()
@@ -3744,50 +3744,24 @@ function drawMinimalArrow(ctx: CanvasRenderingContext2D, x: number, y: number, a
     ctx.lineTo(tip - barb, spread)
   }
 
-  // 1) burnt stain halo — barely-there pooled darkening around the whole mark
-  ctx.strokeStyle = 'rgba(26,15,5,0.10)'
-  ctx.lineWidth = 3.2
-  shaft()
-  ctx.stroke()
-  head()
-  ctx.stroke()
-
-  // 2) bevelled upper groove wall, offset up-left (the shaded face of the cut)
-  ctx.strokeStyle = 'rgba(24,13,4,0.30)'
-  ctx.lineWidth = 1.5
+  // 1) drop shadow for contrast against the wood
+  ctx.strokeStyle = 'rgba(0,0,0,0.5)'
+  ctx.lineWidth = 4
   ctx.save()
-  ctx.translate(-0.28, -0.34)
+  ctx.translate(0, 1.5)
   shaft()
   ctx.stroke()
   head()
   ctx.stroke()
   ctx.restore()
 
-  // 3) deep incision core — crisp, dark, slightly thinner toward the tail
-  ctx.strokeStyle = 'rgba(30,17,6,0.78)'
-  ctx.lineWidth = 0.9
-  shaft()
-  ctx.stroke()
-  ctx.lineWidth = 1.0
-  head()
-  ctx.stroke()
-
-  // 4) hairline catch-light: only on the lower lip, where the sun grazes it
-  ctx.strokeStyle = 'rgba(238,224,196,0.28)'
-  ctx.lineWidth = 0.55
-  ctx.save()
-  ctx.translate(0.3, 0.42)
+  // 2) bright painted white arrow
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 2.5
   shaft()
   ctx.stroke()
   head()
   ctx.stroke()
-  ctx.restore()
-
-  // 5) the knife's resting point: a tiny deepened pit right at the tip
-  ctx.fillStyle = 'rgba(20,11,3,0.5)'
-  ctx.beginPath()
-  ctx.arc(tip, 0, 0.55, 0, Math.PI * 2)
-  ctx.fill()
 
   ctx.restore()
 }
