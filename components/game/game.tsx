@@ -44,6 +44,7 @@ import {
   drawFountain,
   drawBridgeSign,
   drawSportsCar,
+  drawParkingSpot,
   drawPet,
   tileNoise,
   worldToScreen,
@@ -136,6 +137,7 @@ type ShopLayout = {
   tile: { x: number; y: number }
   doorSide: 'left' | 'right'
   approach: { x: number; y: number }
+  parking?: { x: number; y: number }
 }
 
 // Six storefront lots outside the river. The approach point sits on an outer
@@ -150,11 +152,11 @@ type ShopLayout = {
 // +y), 'right' faces down-right (toward +x). We pick whichever points more
 // toward the center: 'right' when (PLAZA.x - tile.x) > (PLAZA.y - tile.y).
 const SHOP_LAYOUT: Record<string, ShopLayout> = {
-  experience: { tile: { x: 23, y: 3 }, doorSide: 'left', approach: { x: 24, y: 6 } }, // north -> faces center
-  projects: { tile: { x: 39, y: 17 }, doorSide: 'left', approach: { x: 34, y: 19 } }, // east -> faces center
-  skills: { tile: { x: 23, y: 35 }, doorSide: 'right', approach: { x: 24, y: 33 } }, // south -> faces center
-  about: { tile: { x: 19, y: 16 }, doorSide: 'right', approach: { x: 20, y: 19 } }, // former info kiosk location
-  research: { tile: { x: 7, y: 17 }, doorSide: 'right', approach: { x: 14, y: 19 } }, // west -> faces center
+  experience: { tile: { x: 23, y: 3 }, doorSide: 'left', approach: { x: 24, y: 6 }, parking: { x: 25, y: 8 } }, // north -> faces center
+  projects: { tile: { x: 39, y: 17 }, doorSide: 'left', approach: { x: 34, y: 19 }, parking: { x: 38, y: 21 } }, // east -> faces center
+  skills: { tile: { x: 23, y: 35 }, doorSide: 'right', approach: { x: 24, y: 33 }, parking: { x: 25, y: 32 } }, // south -> faces center
+  about: { tile: { x: 19, y: 16 }, doorSide: 'right', approach: { x: 20, y: 19 }, parking: { x: 22, y: 19 } }, // former info kiosk location
+  research: { tile: { x: 7, y: 17 }, doorSide: 'right', approach: { x: 14, y: 19 }, parking: { x: 10, y: 21 } }, // west -> faces center
 }
 
 // Info stand: a small kiosk on the top-left corner of the central
@@ -909,6 +911,11 @@ export function Game() {
     teleportMenuOpenRef.current = teleportMenuOpen
   }, [teleportMenuOpen])
   const [onboardingStage, setOnboardingStage] = useState<'intro' | 'hint' | 'done' | null>(null)
+  const onboardingStageRef = useRef<'intro' | 'hint' | 'done' | null>(null)
+
+  useEffect(() => {
+    onboardingStageRef.current = onboardingStage
+  }, [onboardingStage])
 
   useEffect(() => {
     if (onboardingStage === 'hint') {
@@ -1159,7 +1166,35 @@ export function Game() {
     if (p.isDriving) {
       p.isDriving = false
       setIsDrivingState(false)
-      carPosRef.current = { x: Math.round(p.x), y: Math.round(p.y) }
+      
+      const nearby = nearbyRef.current
+      let targetParking = nearby ? SHOP_LAYOUT[nearby.id]?.parking : undefined
+
+      // If not right next to a door, check if the player is on one of the 4 outer islands
+      if (!targetParking) {
+        const distToCenter = Math.hypot(p.x - PLAZA.x, p.y - PLAZA.y)
+        if (distToCenter > 12) { // > 12 means across the river
+          let closestCat: CategoryMeta | null = null
+          let minDist = Infinity
+          for (const cat of HOUSES) {
+            if (cat.id === 'info' || cat.id === 'about') continue // skip mainland buildings
+            const d = Math.hypot(p.x - cat.tile.x, p.y - cat.tile.y)
+            if (d < minDist) {
+              minDist = d
+              closestCat = cat
+            }
+          }
+          if (closestCat && SHOP_LAYOUT[closestCat.id]?.parking) {
+            targetParking = SHOP_LAYOUT[closestCat.id].parking
+          }
+        }
+      }
+
+      if (targetParking) {
+        carPosRef.current = { ...targetParking }
+      } else {
+        carPosRef.current = { x: Math.round(p.x), y: Math.round(p.y) }
+      }
       p.speed = 0
     } else if (nearCarRef.current) {
       p.isDriving = true
@@ -1573,7 +1608,7 @@ export function Game() {
       const p = player.current
       const k = keys.current
       const fading = fadeDir.current !== 0
-      const paused = !!portfolioOpenRef.current || fading
+      const paused = !!portfolioOpenRef.current || fading || !!activeDialogueRef.current || onboardingStageRef.current === 'intro'
 
       // direccion de entrada (vector iso deseado)
       let ix = 0
@@ -2049,6 +2084,17 @@ export function Game() {
         if (pts[0].x < -TILE_H * 8 || pts[0].x > vw + TILE_H * 8) continue
         if (pts[0].y < -TILE_H * 10 || pts[0].y > vh + TILE_H * 10) continue
         drawWalkway(ctx, pts)
+      }
+
+      // Draw dedicated parking spots
+      for (const cat of HOUSES) {
+        const layout = SHOP_LAYOUT[cat.id]
+        if (layout?.parking) {
+          const s = origin(layout.parking.x, layout.parking.y)
+          if (s.x < -TILE_H * 8 || s.x > vw + TILE_H * 8) continue
+          if (s.y < -TILE_H * 10 || s.y > vh + TILE_H * 10) continue
+          drawParkingSpot(ctx, s.x, s.y)
+        }
       }
 
       // Each entity carries its "footprint" (range of tiles it occupies) so we
