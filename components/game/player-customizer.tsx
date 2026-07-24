@@ -414,7 +414,7 @@ export function PlayerCustomizer({
               disabled={!canStart}
               className="font-pixel group flex h-12 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm text-primary-foreground shadow-[0_4px_0_0_rgba(0,0,0,0.35)] transition-all hover:brightness-[1.07] active:translate-y-0.5 active:shadow-[0_2px_0_0_rgba(0,0,0,0.35)] disabled:cursor-not-allowed disabled:bg-white/10 disabled:text-muted-foreground disabled:shadow-none sm:px-8"
             >
-              {starting ? 'Checking...' : 'Enter Store'}
+              {starting ? 'Checking...' : "Invade Nithilan's Island"}
               {!starting && (
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
               )}

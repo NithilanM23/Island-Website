@@ -2458,11 +2458,7 @@ export function Game() {
         <div className="absolute bottom-3 left-3 z-10 hidden flex-col items-start gap-2 md:flex">
           <div className="pointer-events-none rounded-lg border border-white/15 bg-[#0c1320]/90 px-3 py-2 text-[11px] text-muted-foreground shadow-[0_8px_30px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)]">
             <span className="text-foreground">WASD / arrows</span> move ·{' '}
-            <span className="text-foreground">Shift</span> run ·{' '}
-            <span className="text-foreground">
-              {scene === 'world' ? (isDrivingState ? 'exit car' : nearCar ? 'drive' : 'enter') : nearExit ? 'exit' : 'view'}
-            </span> ·{' '}
-            <span className="text-foreground">/</span> chat
+            <span className="text-foreground">Shift</span> run
           </div>
         </div>
       )}

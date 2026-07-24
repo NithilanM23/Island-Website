@@ -13,7 +13,7 @@ import {
 import { lighten, darken, roundRect, shadeRgba } from './engine/color'
 import { tileNoise, tileHash, mulberry32 } from './engine/noise'
 
-export { TILE_W, TILE_H, worldToScreen, drawDiamond, lighten, darken, roundRect, tileNoise, tileHash, drawParkingSpot }
+export { TILE_W, TILE_H, worldToScreen, drawDiamond, lighten, darken, roundRect, tileNoise, tileHash }
 export type { Vec2, Dir }
 
 // next/font expone las familias reales via variables CSS en <html>. Las leemos
@@ -6911,7 +6911,7 @@ export function drawCharacter(
 }
 
 export function drawParkingSpot(ctx: CanvasRenderingContext2D, cx: number, cy: number) {
-  drawDiamond(ctx, cx, cy, 54, 'rgba(0,0,0,0.1)', 'rgba(255,255,255,0.4)', 2)
+  drawDiamond(ctx, cx, cy, 'rgba(0,0,0,0.1)', 'rgba(255,255,255,0.4)', 54, 27)
   ctx.save()
   ctx.translate(cx, cy)
   ctx.scale(1, 0.5)
